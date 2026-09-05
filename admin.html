@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Carga y Administración | Ferias en Córdoba</title>
+  <title>Panel SuperAdmin | Ferias en Córdoba</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,12 +19,11 @@
 </head>
 <body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
 
-  <!-- HEADER -->
   <header class="bg-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <a href="index.html" class="flex items-center gap-2">
-        <i class="fa-solid fa-store text-brand-green text-2xl"></i>
-        <span class="font-bold text-xl text-brand-dark">Panel de Administración</span>
+        <i class="fa-solid fa-user-shield text-brand-green text-2xl"></i>
+        <span class="font-bold text-xl text-brand-dark">SuperAdmin General</span>
       </a>
       <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
     </div>
@@ -32,81 +31,86 @@
 
   <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
 
-    <!-- SECCIÓN 1: SUBIR LOGO DE FERIA -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm">
-      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-landmark text-brand-green"></i> Subir Logo de Feria
+    <!-- VINCULAR FERIANTE A FERIA -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+        <i class="fa-solid fa-link text-brand-green"></i> Asignar Feriante a una Feria
       </h2>
-      <form id="form-feria" class="space-y-4" onsubmit="guardarFeria(event)">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre de la Feria</label>
-          <input type="text" id="feria-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+
+      <form id="form-vincular-feriante" class="space-y-4" onsubmit="vincularFerianteAFeria(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante</label>
+            <select id="select-feriante" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+              <option value="">Cargando feriantes...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feria</label>
+            <select id="select-feria" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+              <option value="">Cargando ferias...</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Logo / Imagen de Portada</label>
-          <input type="file" id="feria-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
-        </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Feria</button>
+        <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Guardar Vinculación
+        </button>
       </form>
     </div>
 
-    <!-- SECCIÓN 2: SUBIR LOGO DE FERIANTE -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm">
-      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-user-gear text-brand-green"></i> Registrar Feriante y Logo
+    <!-- VINCULAR PRODUCTO A FERIANTE -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+        <i class="fa-solid fa-boxes-packing text-brand-green"></i> Asignar Producto a un Feriante
       </h2>
-      <form id="form-feriante" class="space-y-4" onsubmit="guardarFeriante(event)">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Feriante / Emprendimiento</label>
-          <input type="text" id="feriante-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+
+      <form id="form-vincular-producto" class="space-y-4" onsubmit="vincularProductoAFeriante(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Producto</label>
+            <select id="select-producto" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+              <option value="">Cargando productos...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante / Marca</label>
+            <select id="select-feriante-prod" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+              <option value="">Cargando feriantes...</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Logo del Emprendimiento</label>
-          <input type="file" id="feriante-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
-        </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Feriante</button>
+        <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Asignar Producto
+        </button>
       </form>
     </div>
 
-    <!-- SECCIÓN 3: CARGAR PRODUCTO (CON VÍNCULO A FERIANTE) -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm">
-      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-box text-brand-green"></i> Cargar Producto
+    <!-- COORDENADAS DE MAPA PARA FERIAS -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+        <i class="fa-solid fa-location-dot text-brand-green"></i> Ajustar Ubicación de Feria (Latitud / Longitud)
       </h2>
-      <form id="form-producto" class="space-y-4" onsubmit="guardarProducto(event)">
+
+      <form id="form-coordenadas" class="space-y-4" onsubmit="guardarCoordenadas(event)">
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
-          <input type="text" id="prod-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Feriante / Emprendimiento Propietario</label>
-          <select id="prod-feriante-id" required class="w-full p-2.5 border rounded-lg text-sm bg-white">
-            <option value="">Cargando feriantes...</option>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feria</label>
+          <select id="select-feria-coord" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+            <option value="">Cargando ferias...</option>
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
-          <input type="file" id="prod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Latitud</label>
+            <input type="text" id="feria-lat" required placeholder="-31.4135" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Longitud</label>
+            <input type="text" id="feria-lng" required placeholder="-64.1810" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
         </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Producto</button>
-      </form>
-    </div>
-
-    <!-- SECCIÓN 4: SUBIR FLYER / EVENTO -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm">
-      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-calendar-plus text-brand-green"></i> Publicar Evento / Novedad
-      </h2>
-      <form id="form-evento" class="space-y-4" onsubmit="guardarEvento(event)">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Título del Evento / Novedad</label>
-          <input type="text" id="evento-titulo" required class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Flyer Promocional</label>
-          <input type="file" id="evento-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
-        </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Evento</button>
+        <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Actualizar Coordenadas
+        </button>
       </form>
     </div>
 
@@ -117,96 +121,85 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Cargar la lista de feriantes en el desplegable apenas abre la página
-    async function cargarListaFeriantes() {
-      const { data: feriantes } = await _supabase.from('feriantes').select('id, nombre');
-      const select = document.getElementById('prod-feriante-id');
-      if (feriantes && select) {
-        select.innerHTML = '<option value="">Seleccionar Feriante...</option>' + 
-          feriantes.map(f => `<option value="${f.id}">${f.nombre}</option>`).join('');
-      }
-    }
-    document.addEventListener('DOMContentLoaded', cargarListaFeriantes);
+    // Cargar listas desplegables al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarFerias();
+      cargarFeriantes();
+      cargarProductos();
+    });
 
-    // FUNCIÓN CENTRAL PARA SUBIR CUALQUIER FOTO A CUALQUIER BUCKET
-    async function subirFoto(inputElement, bucketName) {
-      const file = inputElement.files[0];
-      if (!file) return null;
-
-      const ext = file.name.split('.').pop();
-      const filename = `${Date.now()}_${Math.random().toString(36).substring(2,7)}.${ext}`;
-
-      const { data, error } = await _supabase.storage.from(bucketName).upload(filename, file);
-      if (error) {
-        alert('Error al subir la imagen: ' + error.message);
-        return null;
-      }
-
-      const { data: urlData } = _supabase.storage.from(bucketName).getPublicUrl(filename);
-      return urlData.publicUrl;
-    }
-
-    // ACCIONES DE CADA FORMULARIO
-    async function guardarFeria(e) {
-      e.preventDefault();
-      const nombre = document.getElementById('feria-nombre').value;
-      const url = await subirFoto(document.getElementById('feria-foto'), 'logos-ferias');
-
-      if (url) {
-        const { error } = await _supabase.from('ferias').insert([{ nombre, portada_url: url }]);
-        if (!error) { 
-          alert('¡Feria guardada con éxito!'); 
-          e.target.reset(); 
+    async function cargarFerias() {
+      const { data } = await _supabase.from('ferias').select('id, nombre');
+      const selects = [document.getElementById('select-feria'), document.getElementById('select-feria-coord')];
+      
+      selects.forEach(select => {
+        if (!select) return;
+        select.innerHTML = '<option value="">Seleccione una feria...</option>';
+        if (data) {
+          data.forEach(f => {
+            select.innerHTML += `<option value="${f.id}">${f.nombre}</option>`;
+          });
         }
+      });
+    }
+
+    async function cargarFeriantes() {
+      const { data } = await _supabase.from('feriantes').select('id, nombre');
+      const selects = [document.getElementById('select-feriante'), document.getElementById('select-feriante-prod')];
+      
+      selects.forEach(select => {
+        if (!select) return;
+        select.innerHTML = '<option value="">Seleccione un feriante...</option>';
+        if (data) {
+          data.forEach(f => {
+            select.innerHTML += `<option value="${f.id}">${f.nombre}</option>`;
+          });
+        }
+      });
+    }
+
+    async function cargarProductos() {
+      const { data } = await _supabase.from('productos').select('id, nombre');
+      const select = document.getElementById('select-producto');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Seleccione un producto...</option>';
+      if (data) {
+        data.forEach(p => {
+          select.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+        });
       }
     }
 
-    async function guardarFeriante(e) {
+    async function vincularFerianteAFeria(e) {
       e.preventDefault();
-      const nombre = document.getElementById('feriante-nombre').value;
-      const url = await subirFoto(document.getElementById('feriante-foto'), 'logos-feriantes');
+      const feriante_id = document.getElementById('select-feriante').value;
+      const feria_id = document.getElementById('select-feria').value;
 
-      if (url) {
-        const { error } = await _supabase.from('feriantes').insert([{ nombre, logo_url: url }]);
-        if (!error) { 
-          alert('¡Feriante guardado con éxito!'); 
-          e.target.reset(); 
-          cargarListaFeriantes(); // Actualiza el desplegable de productos automáticamente
-        }
-      }
+      const { error } = await _supabase.from('feriantes_ferias').insert([{ feriante_id, feria_id }]);
+      if (!error) alert('¡Feriante asignado a la feria!');
+      else alert('Error: ' + error.message);
     }
 
-    async function guardarProducto(e) {
+    async function vincularProductoAFeriante(e) {
       e.preventDefault();
-      const nombre = document.getElementById('prod-nombre').value;
-      const ferianteId = document.getElementById('prod-feriante-id').value;
-      const url = await subirFoto(document.getElementById('prod-foto'), 'productos');
+      const producto_id = document.getElementById('select-producto').value;
+      const feriante_id = document.getElementById('select-feriante-prod').value;
 
-      if (url && ferianteId) {
-        const { error } = await _supabase.from('productos').insert([
-          { nombre: nombre, foto_url: url, feriante_id: ferianteId }
-        ]);
-        if (!error) { 
-          alert('¡Producto guardado y asignado correctamente!'); 
-          e.target.reset(); 
-        } else {
-          alert('Error al guardar el producto: ' + error.message);
-        }
-      }
+      const { error } = await _supabase.from('productos').update({ feriante_id }).eq('id', producto_id);
+      if (!error) alert('¡Producto asignado al feriante!');
+      else alert('Error: ' + error.message);
     }
 
-    async function guardarEvento(e) {
+    async function guardarCoordenadas(e) {
       e.preventDefault();
-      const titulo = document.getElementById('evento-titulo').value;
-      const url = await subirFoto(document.getElementById('evento-foto'), 'flyers-eventos');
+      const feria_id = document.getElementById('select-feria-coord').value;
+      const lat = parseFloat(document.getElementById('feria-lat').value);
+      const lng = parseFloat(document.getElementById('feria-lng').value);
 
-      if (url) {
-        const { error } = await _supabase.from('eventos').insert([{ titulo, imagen_url: url }]);
-        if (!error) { 
-          alert('¡Evento guardado con éxito!'); 
-          e.target.reset(); 
-        }
-      }
+      const { error } = await _supabase.from('ferias').update({ lat, lng }).eq('id', feria_id);
+      if (!error) alert('¡Ubicación de la feria actualizada!');
+      else alert('Error: ' + error.message);
     }
   </script>
 </body>
