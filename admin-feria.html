@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administración de Feria | Ferias en Córdoba</title>
+  <title>Gestión de Feria | Ferias en Córdoba</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,7 +23,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <a href="index.html" class="flex items-center gap-2">
         <i class="fa-solid fa-store text-brand-green text-2xl"></i>
-        <span class="font-bold text-xl text-brand-dark">Gestión de la Feria</span>
+        <span class="font-bold text-xl text-brand-dark">Panel de Feria</span>
       </a>
       <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
     </div>
@@ -31,41 +31,55 @@
 
   <main class="max-w-3xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
 
-    <!-- FORMULARIO DE PERFIL DE FERIA Y CONFIGURACIÓN -->
+    <!-- PERFIL Y CONFIGURACIÓN DE LA FERIA -->
     <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-6">
       <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
-        <i class="fa-solid fa-sliders text-brand-green"></i> Configuración y Datos de la Feria
+        <i class="fa-solid fa-sliders text-brand-green"></i> Configuración de la Feria
       </h2>
 
-      <form id="form-perfil-feria" class="space-y-4" onsubmit="guardarAjustesFeria(event)">
-        <!-- NOMBRE Y DIRECCIÓN -->
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre de la Feria</label>
-          <input type="text" id="feria-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+      <form id="form-perfil-feria" class="space-y-5" onsubmit="guardarPerfilFeria(event)">
+        
+        <!-- Nombre y Dirección -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre de la Feria</label>
+            <input type="text" id="feria-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Dirección / Ubicación</label>
+            <input type="text" id="feria-direccion" required class="w-full p-2.5 border rounded-lg text-sm" placeholder="Ej: Plaza Alberdi">
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Dirección / Ubicación</label>
-          <input type="text" id="feria-direccion" required class="w-full p-2.5 border rounded-lg text-sm">
-        </div>
-
-        <!-- DESCRIPCIÓN -->
+        <!-- Descripción -->
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción de la Feria</label>
-          <textarea id="feria-descripcion" rows="3" class="w-full p-2.5 border rounded-lg text-sm" placeholder="Resumen de días, horarios y propuesta de la feria..."></textarea>
+          <textarea id="feria-descripcion" rows="3" class="w-full p-2.5 border rounded-lg text-sm" placeholder="Horarios, días de funcionamiento, propuesta de la feria..."></textarea>
         </div>
 
-        <!-- FOTO DE PORTADA -->
+        <!-- Contacto y Redes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">WhatsApp de Contacto</label>
+            <input type="text" id="feria-whatsapp" class="w-full p-2.5 border rounded-lg text-sm" placeholder="3511234567">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Instagram (@usuario)</label>
+            <input type="text" id="feria-instagram" class="w-full p-2.5 border rounded-lg text-sm" placeholder="feria_ejemplo">
+          </div>
+        </div>
+
+        <!-- Imagen de Portada / Header -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen de Portada / Header</label>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto de Portada / Header</label>
           <input type="file" id="feria-portada" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
         </div>
 
         <!-- MODO LLUVIA (SWITCH) -->
         <div class="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-100">
           <div>
-            <span class="font-bold text-sm text-blue-900 block">🌧️ Estado por Mal Tiempo (Modo Lluvia)</span>
-            <span class="text-xs text-blue-700">Activalo si la feria se suspende o se traslada bajo techado.</span>
+            <span class="font-bold text-sm text-blue-900 block">🌧️ Modo Lluvia (Mal Tiempo)</span>
+            <span class="text-xs text-blue-700">Activalo si la feria se traslada o se suspende por mal clima.</span>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="feria-modo-lluvia" class="sr-only peer">
@@ -73,39 +87,42 @@
           </label>
         </div>
 
-        <!-- RUBROS / SKILLS / CATEGORÍAS DE LA FERIA -->
+        <!-- RUBROS Y SKILLS PRESENTES EN LA FERIA -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-2">Categorías / Rubros disponibles en esta feria:</label>
-          <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="block text-xs font-semibold text-gray-600 mb-2">Rubros / Categorías disponibles en el predio:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
             <label class="flex items-center gap-2 border p-2 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input type="checkbox" name="rubro" value="alimentacion" class="rounded text-brand-green"> 🟡 Alimentación
+              <input type="checkbox" name="skills" value="alimentacion" class="rounded text-brand-green"> 🟡 Alimentación
             </label>
             <label class="flex items-center gap-2 border p-2 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input type="checkbox" name="rubro" value="textil" class="rounded text-brand-green"> 🔵 Moda / Textil
+              <input type="checkbox" name="skills" value="textil" class="rounded text-brand-green"> 🔵 Textil / Moda
             </label>
             <label class="flex items-center gap-2 border p-2 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input type="checkbox" name="rubro" value="artesanias" class="rounded text-brand-green"> 🔴 Artesanías
+              <input type="checkbox" name="skills" value="artesanias" class="rounded text-brand-green"> 🔴 Artesanías
             </label>
             <label class="flex items-center gap-2 border p-2 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input type="checkbox" name="rubro" value="impacto" class="rounded text-brand-green"> 🟢 Impacto / Ecología
+              <input type="checkbox" name="skills" value="impacto" class="rounded text-brand-green"> 🟢 Impacto / Ecología
+            </label>
+            <label class="flex items-center gap-2 border p-2 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="checkbox" name="skills" value="servicios" class="rounded text-brand-green"> ⚪ Servicios / Otros
             </label>
           </div>
         </div>
 
         <button type="submit" class="w-full bg-brand-green text-white font-bold py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
-          Actualizar Ajustes de la Feria
+          Guardar Ajustes de la Feria
         </button>
       </form>
     </div>
 
-    <!-- PUBLICAR EVENTO / FLYER -->
+    <!-- PUBLICAR EVENTO / NOVEDAD -->
     <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
       <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
         <i class="fa-solid fa-bullhorn text-brand-green"></i> Publicar Novedad o Flyer
       </h2>
-      <form id="form-evento-feria" class="space-y-4" onsubmit="guardarEventoFeria(event)">
+      <form id="form-evento" class="space-y-4" onsubmit="publicarEvento(event)">
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Título de la Novedad</label>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Título de la Novedad / Evento</label>
           <input type="text" id="evento-titulo" required class="w-full p-2.5 border rounded-lg text-sm">
         </div>
         <div>
@@ -125,59 +142,70 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function guardarAjustesFeria(e) {
+    // FUNCIÓN PARA SUBIR FOTO
+    async function subirImagen(inputElement, bucketName) {
+      const file = inputElement.files[0];
+      if (!file) return null;
+
+      const filename = `${Date.now()}_${Math.random().toString(36).substring(2,7)}.${file.name.split('.').pop()}`;
+      const { data, error } = await _supabase.storage.from(bucketName).upload(filename, file);
+
+      if (error) {
+        alert('Error al subir imagen: ' + error.message);
+        return null;
+      }
+      return _supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
+    }
+
+    // GUARDAR O ACTUALIZAR PERFIL DE FERIA
+    async function guardarPerfilFeria(e) {
       e.preventDefault();
+
       const nombre = document.getElementById('feria-nombre').value;
       const direccion = document.getElementById('feria-direccion').value;
       const descripcion = document.getElementById('feria-descripcion').value;
+      const whatsapp = document.getElementById('feria-whatsapp').value;
+      const instagram = document.getElementById('feria-instagram').value;
       const modoLluvia = document.getElementById('feria-modo-lluvia').checked;
-      const fotoInput = document.getElementById('feria-portada');
 
-      let portadaUrl = null;
-      if (fotoInput.files[0]) {
-        const file = fotoInput.files[0];
-        const filename = `${Date.now()}_portada.${file.name.split('.').pop()}`;
-        const { data } = await _supabase.storage.from('logos-ferias').upload(filename, file);
-        if (data) {
-          portadaUrl = _supabase.storage.from('logos-ferias').getPublicUrl(filename).data.publicUrl;
-        }
-      }
+      // Obtener skills seleccionados
+      const checkboxes = document.querySelectorAll('input[name="skills"]:checked');
+      const skills = Array.from(checkboxes).map(cb => cb.value);
 
-      const datosActualizar = {
+      // Subir portada si seleccionó archivo
+      const portadaUrl = await subirImagen(document.getElementById('feria-portada'), 'logos-ferias');
+
+      const datosFeria = {
         nombre,
         direccion,
         descripcion,
-        modo_lluvia: modoLluvia
+        whatsapp,
+        instagram,
+        modo_lluvia: modoLluvia,
+        skills
       };
 
-      if (portadaUrl) datosActualizar.portada_url = portadaUrl;
+      if (portadaUrl) datosFeria.portada_url = portadaUrl;
 
-      // Insertar o actualizar registro
-      const { error } = await _supabase.from('ferias').insert([datosActualizar]);
+      const { error } = await _supabase.from('ferias').insert([datosFeria]);
 
       if (!error) {
-        alert('¡Datos y estado de la feria guardados correctamente!');
+        alert('¡Configuración de la feria guardada con éxito!');
       } else {
-        alert('Error al guardar: ' + error.message);
+        alert('Error al guardar datos: ' + error.message);
       }
     }
 
-    async function guardarEventoFeria(e) {
+    // PUBLICAR FLYER / EVENTO
+    async function publicarEvento(e) {
       e.preventDefault();
       const titulo = document.getElementById('evento-titulo').value;
-      const flyerInput = document.getElementById('evento-flyer');
-      const file = flyerInput.files[0];
+      const flyerUrl = await subirImagen(document.getElementById('evento-flyer'), 'flyers-eventos');
 
-      if (!file) return;
-
-      const filename = `${Date.now()}_flyer.${file.name.split('.').pop()}`;
-      const { data } = await _supabase.storage.from('flyers-eventos').upload(filename, file);
-
-      if (data) {
-        const flyerUrl = _supabase.storage.from('flyers-eventos').getPublicUrl(filename).data.publicUrl;
+      if (flyerUrl) {
         const { error } = await _supabase.from('eventos').insert([{ titulo, imagen_url: flyerUrl }]);
         if (!error) {
-          alert('¡Flyer/Novedad publicada!');
+          alert('¡Novedad publicada!');
           e.target.reset();
         }
       }
