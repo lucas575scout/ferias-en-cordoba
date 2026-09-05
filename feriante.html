@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title id="meta-title">Perfil de Feriante | Ferias en Córdoba</title>
+  <meta id="meta-desc" name="description" content="Conocé los productos, historia y formas de contacto de este emprendimiento local en Córdoba.">
+
+  <!-- CDNs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#2E7D32',
+              lightgreen: '#E8F5E9',
+              yellow: '#FBC02D',
+              blue: '#0288D1',
+              dark: '#1B5E20'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- HEADER / NAVBAR -->
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-2">
+        <i class="fa-solid fa-store text-brand-green text-2xl"></i>
+        <span class="font-bold text-xl text-brand-dark">Ferias en Córdoba</span>
+      </a>
+      <nav class="hidden md:flex gap-6 font-medium">
+        <a href="index.html" class="hover:text-brand-green">Inicio</a>
+        <a href="huella.html" class="hover:text-brand-green">Huella de Carbono</a>
+      </nav>
+      <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
+        <i class="fa-brands fa-whatsapp text-lg"></i>
+        <span>Soporte</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- CABECERA DEL FERIANTE -->
+  <section class="bg-white border-b relative">
+    <div class="h-44 md:h-56 bg-gradient-to-r from-green-600 to-emerald-800 relative"></div>
+
+    <div class="max-w-7xl mx-auto px-4 relative -mt-16 pb-6 flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
+      <div class="flex flex-col md:flex-row items-center md:items-end gap-4 text-center md:text-left">
+        <img id="feriante-logo" src="https://via.placeholder.com/120" class="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-lg bg-white object-cover">
+        <div class="mb-2">
+          <div class="flex items-center justify-center md:justify-start gap-2">
+            <h1 id="feriante-nombre" class="text-2xl md:text-3xl font-extrabold text-gray-900">Cargando emprendimiento...</h1>
+            <span id="badge-mantel" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-200">Mantel</span>
+          </div>
+          <p id="feriante-titular" class="text-sm text-gray-600 mt-1">Titular: ...</p>
+          <p id="feriante-feria-pertenece" class="text-xs text-brand-green font-semibold mt-0.5">Feria: ...</p>
+        </div>
+      </div>
+
+      <!-- BOTONES DE CONTACTO DIRECTO -->
+      <div class="flex flex-wrap gap-2 justify-center">
+        <a id="btn-wsp-feriante" href="#" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </a>
+        <a id="btn-ig-feriante" href="#" target="_blank" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+          <i class="fa-brands fa-instagram"></i> Instagram
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+    
+    <!-- CATÁLOGO DE PRODUCTOS (Max 2 destacados para carrusel, resto aquí) -->
+    <div class="lg:col-span-2 space-y-8">
+      
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-box-open text-brand-green"></i> Catálogo de Productos
+        </h2>
+        
+        <div id="grid-productos" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <p class="text-gray-400 text-sm">Cargando productos...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: DESCRIPCIÓN Y COMENTARIOS -->
+    <div class="space-y-8">
+      
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h3 class="font-bold text-gray-800 mb-3">Historia / Propuesta</h3>
+        <p id="feriante-descripcion" class="text-sm text-gray-600 leading-relaxed">Cargando descripción del emprendimiento...</p>
+      </div>
+
+      <!-- COMENTARIOS -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-comments text-brand-green"></i> Opiniones de Clientes
+        </h3>
+        
+        <form id="form-comentario" class="space-y-3 mb-6" onsubmit="enviarComentario(event)">
+          <input type="text" id="input-autor" placeholder="Tu nombre" required class="w-full text-sm p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-green">
+          <textarea id="input-mensaje" placeholder="Dejá tu opinión para este emprendimiento..." required rows="3" class="w-full text-sm p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-green"></textarea>
+          <button type="submit" class="w-full bg-brand-green hover:bg-brand-dark text-white text-sm font-semibold py-2 rounded-lg transition">Publicar Opinión</button>
+        </form>
+
+        <div id="lista-comentarios" class="space-y-3 max-h-80 overflow-y-auto">
+          <p class="text-xs text-gray-400">Cargando comentarios...</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-800 text-gray-300 py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+      <p>© 2026 Ferias en Córdoba - Impulsando la Economía Social y el Consumo Responsable.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT SUPABASE -->
+  <script>
+    const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let ferianteId = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      ferianteId = params.get('id');
+
+      if (!ferianteId) {
+        alert('Feriante no especificado');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await cargarDatosFeriante();
+      await cargarProductos();
+      await cargarComentarios();
+    });
+
+    async function cargarDatosFeriante() {
+      const { data: f } = await _supabase
+        .from('feriantes')
+        .select('*, ferias(nombre)')
+        .eq('id', ferianteId)
+        .single();
+
+      if (!f) return;
+
+      document.getElementById('feriante-nombre').innerText = f.nombre_emprendimiento;
+      document.getElementById('feriante-titular').innerText = `Titular: ${f.nombre_titular || 'No especificado'}`;
+      document.getElementById('feriante-feria-pertenece').innerText = `Feria: ${f.ferias?.nombre || 'Independiente / Varias'}`;
+      document.getElementById('feriante-descripcion').innerText = f.descripcion || 'Sin información adicional.';
+
+      if (f.logo_url) document.getElementById('feriante-logo').src = f.logo_url;
+      if (f.whatsapp) document.getElementById('btn-wsp-feriante').href = `https://wa.me/${f.whatsapp}?text=Hola!%20Vi%20tu%20emprendimiento%20en%20Ferias%20en%20Córdoba`;
+      if (f.instagram_url) document.getElementById('btn-ig-feriante').href = f.instagram_url;
+
+      // Aplicar estilo de badge de mantel
+      const badge = document.getElementById('badge-mantel');
+      const colores = {
+        amarillo: { text: '🟡 Alimentación', class: 'bg-yellow-100 text-yellow-800' },
+        azul: { text: '🔵 Textil', class: 'bg-blue-100 text-blue-800' },
+        bordo: { text: '🔴 Artesanías', class: 'bg-purple-100 text-purple-800' },
+        verde: { text: '🟢 Impacto', class: 'bg-green-100 text-green-800' }
+      };
+
+      if (colores[f.color_mantel]) {
+        badge.innerText = colores[f.color_mantel].text;
+        badge.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${colores[f.color_mantel].class}`;
+      } else {
+        badge.innerText = '⚪ General';
+      }
+    }
+
+    async function cargarProductos() {
+      const { data: prods } = await _supabase.from('productos_feriante').select('*').eq('feriante_id', ferianteId);
+      const container = document.getElementById('grid-productos');
+      container.innerHTML = '';
+
+      if (!prods || prods.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">Este emprendimiento aún no ha cargado productos en su catálogo.</p>';
+        return;
+      }
+
+      prods.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between';
+        card.innerHTML = `
+          <div>
+            <img src="${p.imagen_url || 'https://via.placeholder.com/300x200'}" class="w-full h-40 object-cover rounded-lg mb-3">
+            <div class="flex justify-between items-start mb-1">
+              <h3 class="font-bold text-gray-900">${p.nombre}</h3>
+              ${p.destacado ? '<span class="text-[10px] bg-yellow-100 text-yellow-800 font-bold px-1.5 py-0.5 rounded">Destacado</span>' : ''}
+            </div>
+            <p class="text-xs text-gray-600 line-clamp-2 mb-3">${p.descripcion || ''}</p>
+          </div>
+          <div class="flex justify-between items-center pt-2 border-t mt-2">
+            <span class="text-lg font-bold text-brand-green">$${p.precio}</span>
+            <a href="https://wa.me/?text=Hola!%20Me%20interesa%20el%20producto%20${encodeURIComponent(p.nombre)}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1 transition">
+              <i class="fa-brands fa-whatsapp"></i> Consultar
+            </a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function cargarComentarios() {
+      const { data: coms } = await _supabase.from('comentarios').select('*').eq('destino_id', ferianteId).order('created_at', { ascending: false });
+      const container = document.getElementById('lista-comentarios');
+      container.innerHTML = '';
+
+      if (!coms || coms.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400">Sé el primero en opinar sobre este emprendimiento.</p>';
+        return;
+      }
+
+      coms.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 p-3 rounded-lg border text-xs';
+        div.innerHTML = `
+          <div class="font-bold text-gray-800">${c.autor_nombre}</div>
+          <p class="text-gray-600 mt-0.5">${c.mensaje}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function enviarComentario(e) {
+      e.preventDefault();
+      const autor = document.getElementById('input-autor').value;
+      const mensaje = document.getElementById('input-mensaje').value;
+
+      await _supabase.from('comentarios').insert([
+        { tipo_destino: 'feriante', destino_id: ferianteId, autor_nombre: autor, mensaje: mensaje }
+      ]);
+
+      document.getElementById('input-autor').value = '';
+      document.getElementById('input-mensaje').value = '';
+      await cargarComentarios();
+    }
+  </script>
+</body>
+</html>
