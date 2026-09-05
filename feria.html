@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title id="meta-title">Perfil de Feria | Ferias en Córdoba</title>
+  <meta id="meta-desc" name="description" content="Conocé las novedades, ubicación y emprendedores de esta feria barrial en Córdoba.">
+
+  <!-- CDNs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#2E7D32',
+              lightgreen: '#E8F5E9',
+              yellow: '#FBC02D',
+              blue: '#0288D1',
+              dark: '#1B5E20'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- HEADER / NAVBAR -->
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-2">
+        <i class="fa-solid fa-store text-brand-green text-2xl"></i>
+        <span class="font-bold text-xl text-brand-dark">Ferias en Córdoba</span>
+      </a>
+      <nav class="hidden md:flex gap-6 font-medium">
+        <a href="index.html" class="hover:text-brand-green">Inicio</a>
+        <a href="huella.html" class="hover:text-brand-green">Huella de Carbono</a>
+      </nav>
+      <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
+        <i class="fa-brands fa-whatsapp text-lg"></i>
+        <span>Soporte</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- BANNER MODO LLUVIA LOCAL -->
+  <div id="banner-lluvia-feria" class="hidden bg-blue-600 text-white text-center py-2 px-4 font-semibold flex justify-center items-center gap-2">
+    <i class="fa-solid fa-cloud-showers-heavy text-lg"></i>
+    <span>¡Atención! Esta feria activó el Modo Lluvia. Las actividades presenciales están suspendidas hoy. ¡Contactá a los feriantes para envíos!</span>
+  </div>
+
+  <!-- PORTADA ESTILO INSTAGRAM / CABECERA -->
+  <section class="bg-white border-b relative">
+    <div class="h-48 md:h-64 bg-gray-200 overflow-hidden relative">
+      <img id="feria-portada" src="https://via.placeholder.com/1200x400" class="w-full h-full object-cover" alt="Portada de Feria">
+      <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 relative -mt-16 pb-6 flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
+      <div class="flex flex-col md:flex-row items-center md:items-end gap-4 text-center md:text-left">
+        <img id="feria-logo" src="https://via.placeholder.com/120" class="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-lg bg-white object-cover">
+        <div class="mb-2">
+          <h1 id="feria-nombre" class="text-2xl md:text-4xl font-extrabold text-gray-900">Cargando Feria...</h1>
+          <p id="feria-direccion" class="text-sm text-gray-600 flex items-center justify-center md:justify-start gap-1 mt-1">
+            <i class="fa-solid fa-location-dot text-red-500"></i> Cargando dirección...
+          </p>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN Y CONTACTO -->
+      <div class="flex flex-wrap gap-2 justify-center">
+        <a id="btn-como-llegar" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+          <i class="fa-solid fa-route"></i> Cómo llegar
+        </a>
+        <a id="btn-wsp-feria" href="#" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </a>
+        <a id="btn-ig-feria" href="#" target="_blank" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+          <i class="fa-brands fa-instagram"></i> Instagram
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+    
+    <!-- COLUMNA IZQUIERDA: DESCRIPCIÓN, SKILLS Y MURO DE AVISOS -->
+    <div class="lg:col-span-2 space-y-8">
+      
+      <!-- DESCRIPCIÓN E INSIGNIAS (SKILLS) -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-3">Sobre la Feria</h2>
+        <p id="feria-descripcion" class="text-gray-600 leading-relaxed mb-4">Cargando información de la feria...</p>
+        
+        <!-- Insignias -->
+        <div id="skills-container" class="flex flex-wrap gap-2 pt-2 border-t">
+          <!-- Carga dinámica -->
+        </div>
+      </div>
+
+      <!-- MURO DE PUBLICACIONES / EVENTOS / NOVEDADES -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-brand-green"></i> Muro de Avisos y Eventos
+        </h2>
+        <div id="muro-publicaciones" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p class="text-gray-400 text-sm">Cargando avisos vigentes...</p>
+        </div>
+      </div>
+
+      <!-- DIRECTORIO DE FERIANTES DE ESTA FERIA -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-users text-brand-green"></i> Feriantes Miembros
+        </h2>
+        
+        <!-- Filtro rápido por mantel dentro de la feria -->
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-4 text-xs font-semibold">
+          <button onclick="filtrarFeriantesMantel('todos')" class="px-3 py-1.5 rounded-full border bg-gray-100">⚪ Todos</button>
+          <button onclick="filtrarFeriantesMantel('amarillo')" class="px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-800">🟡 Alimentación</button>
+          <button onclick="filtrarFeriantesMantel('azul')" class="px-3 py-1.5 rounded-full bg-blue-100 text-blue-800">🔵 Textil</button>
+          <button onclick="filtrarFeriantesMantel('bordo')" class="px-3 py-1.5 rounded-full bg-purple-100 text-purple-800">🔴 Artesanías</button>
+          <button onclick="filtrarFeriantesMantel('verde')" class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">🟢 Impacto</button>
+        </div>
+
+        <div id="grid-feriantes-miembros" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <p class="text-gray-400 text-sm">Cargando feriantes...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: IMPACTO Y COMENTARIOS -->
+    <div class="space-y-8">
+      
+      <!-- HUELLA LOCAL -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm text-center">
+        <i class="fa-solid fa-leaf text-4xl text-brand-green mb-2"></i>
+        <h3 class="font-bold text-gray-800">Impacto Ambiental de esta Feria</h3>
+        <div id="cnt-huella-feria" class="text-3xl font-black text-brand-dark my-2">0.00 kg</div>
+        <p class="text-xs text-gray-500">CO₂ evitado por consumo local de cercanía en este espacio.</p>
+      </div>
+
+      <!-- COMENTARIOS Y MODERACIÓN -->
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-comments text-brand-green"></i> Comentarios del Público
+        </h3>
+        
+        <!-- Formulario nuevo comentario -->
+        <form id="form-comentario" class="space-y-3 mb-6" onsubmit="enviarComentario(event)">
+          <input type="text" id="input-autor" placeholder="Tu nombre" required class="w-full text-sm p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-green">
+          <textarea id="input-mensaje" placeholder="Dejá tu opinión o mensaje para la feria..." required rows="3" class="w-full text-sm p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-green"></textarea>
+          <button type="submit" class="w-full bg-brand-green hover:bg-brand-dark text-white text-sm font-semibold py-2 rounded-lg transition">Publicar Comentario</button>
+        </form>
+
+        <!-- Lista de Comentarios -->
+        <div id="lista-comentarios" class="space-y-3 max-h-80 overflow-y-auto">
+          <p class="text-xs text-gray-400">Cargando comentarios...</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-800 text-gray-300 py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+      <p>© 2026 Ferias en Córdoba - Impulsando la Economía Social y el Consumo Responsable.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT CONEXIÓN SUPABASE -->
+  <script>
+    const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let feriaId = null;
+    let feriantesCache = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      feriaId = params.get('id');
+
+      if (!feriaId) {
+        alert('Feria no especificada');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await cargarDatosFeria();
+      await cargarSkills();
+      await cargarMuroAvisos();
+      await cargarFeriantes();
+      await cargarHuellaFeria();
+      await cargarComentarios();
+    });
+
+    async function cargarDatosFeria() {
+      const { data: feria } = await _supabase.from('ferias').select('*').eq('id', feriaId).single();
+      if (!feria) return;
+
+      document.getElementById('feria-nombre').innerText = feria.nombre;
+      document.getElementById('feria-direccion').innerHTML = `<i class="fa-solid fa-location-dot text-red-500"></i> ${feria.direccion || 'Córdoba Capital'}`;
+      document.getElementById('feria-descripcion').innerText = feria.descripcion || 'Sin descripción disponible.';
+      
+      if (feria.portada_url) document.getElementById('feria-portada').src = feria.portada_url;
+      if (feria.logo_url) document.getElementById('feria-logo').src = feria.logo_url;
+      
+      if (feria.link_mapa) document.getElementById('btn-como-llegar').href = feria.link_mapa;
+      if (feria.whatsapp) document.getElementById('btn-wsp-feria').href = `https://wa.me/${feria.whatsapp}`;
+      if (feria.instagram_url) document.getElementById('btn-ig-feria').href = feria.instagram_url;
+
+      if (feria.modo_lluvia) {
+        document.getElementById('banner-lluvia-feria').classList.remove('hidden');
+      }
+    }
+
+    async function cargarSkills() {
+      const { data } = await _supabase.from('feria_skills').select('skills(*)').eq('feria_id', feriaId);
+      const container = document.getElementById('skills-container');
+      container.innerHTML = '';
+
+      if (data && data.length > 0) {
+        data.forEach(item => {
+          const s = item.skills;
+          const badge = document.createElement('span');
+          badge.className = 'text-xs px-2.5 py-1 rounded-full font-semibold text-white flex items-center gap-1';
+          badge.style.backgroundColor = s.color_hex || '#2E7D32';
+          badge.innerHTML = `<i class="${s.icono_class}"></i> ${s.nombre}`;
+          container.appendChild(badge);
+        });
+      }
+    }
+
+    async function cargarMuroAvisos() {
+      const hoy = new Date().toISOString().split('T')[0];
+      const { data: avisos } = await _supabase
+        .from('publicaciones_feria')
+        .select('*')
+        .eq('feria_id', feriaId)
+        .gte('fecha_vencimiento', hoy);
+
+      const container = document.getElementById('muro-publicaciones');
+      container.innerHTML = '';
+
+      if (!avisos || avisos.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">No hay novedades o flyers publicados vigentes.</p>';
+        return;
+      }
+
+      avisos.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'border rounded-xl p-3 bg-gray-50';
+        item.innerHTML = `
+          <img src="${a.imagen_url || 'https://via.placeholder.com/300x150'}" class="w-full h-32 object-cover rounded-lg mb-2">
+          <h4 class="font-bold text-sm text-gray-900">${a.titulo}</h4>
+          <p class="text-xs text-gray-600 line-clamp-2 mt-1">${a.descripcion || ''}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function cargarFeriantes() {
+      const { data } = await _supabase.from('feriantes').select('*').eq('feria_id', feriaId);
+      feriantesCache = data || [];
+      renderizarFeriantes(feriantesCache);
+    }
+
+    function renderizarFeriantes(lista) {
+      const container = document.getElementById('grid-feriantes-miembros');
+      container.innerHTML = '';
+
+      if (lista.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">No se encontraron feriantes en esta categoría.</p>';
+        return;
+      }
+
+      lista.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-3 flex items-center gap-3 bg-white shadow-sm';
+        card.innerHTML = `
+          <img src="${f.logo_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border">
+          <div class="flex-grow min-w-0">
+            <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre_emprendimiento}</h4>
+            <p class="text-xs text-gray-500">${f.nombre_titular || 'Feriante'}</p>
+            <a href="feriante.html?id=${f.id}" class="text-xs text-brand-green font-semibold hover:underline mt-1 inline-block">Ver perfil</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filtrarFeriantesMantel(color) {
+      if (color === 'todos') renderizarFeriantes(feriantesCache);
+      else renderizarFeriantes(feriantesCache.filter(f => f.color_mantel === color));
+    }
+
+    async function cargarHuellaFeria() {
+      const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg').eq('entidad_id', feriaId);
+      if (data) {
+        const total = data.reduce((acc, c) => acc + (Number(c.co2_ahorrado_kg) || 0), 0);
+        document.getElementById('cnt-huella-feria').innerText = `${total.toFixed(2)} kg`;
+      }
+    }
+
+    async function cargarComentarios() {
+      const { data: coms } = await _supabase.from('comentarios').select('*').eq('destino_id', feriaId).order('created_at', { ascending: false });
+      const container = document.getElementById('lista-comentarios');
+      container.innerHTML = '';
+
+      if (!coms || coms.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400">Sé el primero en dejar un comentario.</p>';
+        return;
+      }
+
+      coms.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 p-3 rounded-lg border text-xs';
+        div.innerHTML = `
+          <div class="font-bold text-gray-800">${c.autor_nombre}</div>
+          <p class="text-gray-600 mt-0.5">${c.mensaje}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function enviarComentario(e) {
+      e.preventDefault();
+      const autor = document.getElementById('input-autor').value;
+      const mensaje = document.getElementById('input-mensaje').value;
+
+      await _supabase.from('comentarios').insert([
+        { tipo_destino: 'feria', destino_id: feriaId, autor_nombre: autor, mensaje: mensaje }
+      ]);
+
+      document.getElementById('input-autor').value = '';
+      document.getElementById('input-mensaje').value = '';
+      await cargarComentarios();
+    }
+  </script>
+</body>
+</html>
