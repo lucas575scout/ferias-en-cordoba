@@ -1,32 +1,222 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Feriante - EcoFerias Córdoba</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Feriante | Ferias en Córdoba</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: { green: '#2E7D32', lightgreen: '#E8F5E9', dark: '#1B5E20' } }
+        }
+      }
+    }
+  </script>
 </head>
-<body class="bg-slate-100 text-slate-800">
-    <header class="bg-amber-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="font-bold text-lg">Panel Emprendimiento / Feriante</h1>
-        <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs font-semibold">Cerrar Sesión</button>
-    </header>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
 
-    <main class="max-w-4xl mx-auto p-6 space-y-6">
-        <div class="bg-white p-6 rounded-xl shadow space-y-4">
-            <h2 class="text-xl font-bold text-amber-900 border-b pb-2">⚡ Venta Directa (Modo Activo)</h2>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="font-bold text-sm">Disponible para Venta Hoy</h3>
-                    <p class="text-xs text-slate-500">Activá este interruptor cuando estés produciendo o atendiendo de forma directa fuera de los días de feria.</p>
-                </div>
-                <input type="checkbox" id="check-modo-activo" class="w-6 h-6 text-amber-600 rounded">
-            </div>
+  <header class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-2">
+        <i class="fa-solid fa-store text-brand-green text-2xl"></i>
+        <span class="font-bold text-xl text-brand-dark">Panel de Feriante</span>
+      </a>
+      <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
+
+    <!-- PERFIL Y CONFIGURACIÓN DEL FERIANTE -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-6">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+        <i class="fa-solid fa-user-pen text-brand-green"></i> Perfil del Emprendimiento
+      </h2>
+
+      <form id="form-perfil-feriante" class="space-y-5" onsubmit="guardarPerfilFeriante(event)">
+        
+        <!-- Nombre Comercial -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Feriante / Emprendimiento</label>
+          <input type="text" id="feriante-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
         </div>
-    </main>
 
-    <script src="js/supabase-client.js"></script>
-    <script src="js/auth.js"></script>
+        <!-- Descripción -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción de la propuesta</label>
+          <textarea id="feriante-descripcion" rows="3" class="w-full p-2.5 border rounded-lg text-sm" placeholder="Contá qué hacés, cómo elaborás tus productos y tu historia..."></textarea>
+        </div>
+
+        <!-- Contacto y Redes -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">WhatsApp de Pedidos</label>
+            <input type="text" id="feriante-whatsapp" class="w-full p-2.5 border rounded-lg text-sm" placeholder="3511234567">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Instagram (@usuario)</label>
+            <input type="text" id="feriante-instagram" class="w-full p-2.5 border rounded-lg text-sm" placeholder="mi_emprendimiento">
+          </div>
+        </div>
+
+        <!-- SELECCIÓN DE CATEGORÍA PRINCIPAL (RUBRO CON COLOR) -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-2">Categoría / Rubro Principal:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <label class="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="categoria" value="alimentacion" class="text-yellow-500" required>
+              <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> 🟡 Alimentación
+            </label>
+            <label class="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="categoria" value="textil" class="text-blue-500">
+              <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> 🔵 Textil y Moda
+            </label>
+            <label class="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="categoria" value="artesanias" class="text-red-700">
+              <span class="w-3 h-3 rounded-full bg-red-800 inline-block"></span> 🔴 Artesanías (Bordó)
+            </label>
+            <label class="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input type="radio" name="categoria" value="impacto" class="text-green-600">
+              <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> 🟢 Impacto / Natura
+            </label>
+            <label class="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50 col-span-1 sm:col-span-2">
+              <input type="radio" name="categoria" value="servicios" class="text-gray-400">
+              <span class="w-3 h-3 rounded-full bg-white border border-gray-400 inline-block"></span> ⚪ Servicios / Accesorios / Otros
+            </label>
+          </div>
+        </div>
+
+        <!-- IMÁGENES: LOGO, PERFIL Y PORTADA -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Logo del Emprendimiento</label>
+            <input type="file" id="feriante-logo" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Foto de Perfil del Emprendedor</label>
+            <input type="file" id="feriante-perfil" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Imagen de Portada / Header</label>
+            <input type="file" id="feriante-portada" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+          </div>
+        </div>
+
+        <!-- MODO ACTIVO (VENTAS ONLINE) -->
+        <div class="flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+          <div>
+            <span class="font-bold text-sm text-emerald-900 block">🟢 Venta Online / Catálogo Activo</span>
+            <span class="text-xs text-emerald-700">Activalo para recibir pedidos por WhatsApp aunque la feria no esté funcionando hoy.</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="feriante-activo" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full bg-brand-green text-white font-bold py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Actualizar Mi Perfil
+        </button>
+      </form>
+    </div>
+
+    <!-- CARGAR PRODUCTOS AL CATÁLOGO -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
+        <i class="fa-solid fa-box text-brand-green"></i> Agregar Producto a mi Catálogo
+      </h2>
+      <form id="form-producto-feriante" class="space-y-4" onsubmit="guardarProductoPropio(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
+          <input type="text" id="prod-nombre" required class="w-full p-2.5 border rounded-lg text-sm" placeholder="Ej: Mermelada artesanal de higo">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
+          <input type="file" id="prod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">
+          Cargar Producto
+        </button>
+      </form>
+    </div>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function subirImagen(inputElement, bucketName) {
+      const file = inputElement.files[0];
+      if (!file) return null;
+
+      const filename = `${Date.now()}_${Math.random().toString(36).substring(2,7)}.${file.name.split('.').pop()}`;
+      const { data, error } = await _supabase.storage.from(bucketName).upload(filename, file);
+
+      if (error) {
+        alert('Error al subir imagen: ' + error.message);
+        return null;
+      }
+      return _supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
+    }
+
+    async function guardarPerfilFeriante(e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById('feriante-nombre').value;
+      const descripcion = document.getElementById('feriante-descripcion').value;
+      const whatsapp = document.getElementById('feriante-whatsapp').value;
+      const instagram = document.getElementById('feriante-instagram').value;
+      const activo = document.getElementById('feriante-activo').checked;
+
+      const categoriaInput = document.querySelector('input[name="categoria"]:checked');
+      const categoria = categoriaInput ? categoriaInput.value : 'servicios';
+
+      // Subida opcional de fotos
+      const logoUrl = await subirImagen(document.getElementById('feriante-logo'), 'logos-feriantes');
+      const perfilUrl = await subirImagen(document.getElementById('feriante-perfil'), 'logos-feriantes');
+      const portadaUrl = await subirImagen(document.getElementById('feriante-portada'), 'logos-feriantes');
+
+      const datosFeriante = {
+        nombre,
+        descripcion,
+        whatsapp,
+        instagram,
+        categoria,
+        activo
+      };
+
+      if (logoUrl) datosFeriante.logo_url = logoUrl;
+      if (perfilUrl) datosFeriante.perfil_url = perfilUrl;
+      if (portadaUrl) datosFeriante.portada_url = portadaUrl;
+
+      const { error } = await _supabase.from('feriantes').insert([datosFeriante]);
+
+      if (!error) {
+        alert('¡Perfil de feriante guardado correctamente!');
+      } else {
+        alert('Error al guardar perfil: ' + error.message);
+      }
+    }
+
+    async function guardarProductoPropio(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('prod-nombre').value;
+      const fotoUrl = await subirImagen(document.getElementById('prod-foto'), 'productos');
+
+      if (fotoUrl) {
+        const { error } = await _supabase.from('productos').insert([{ nombre, foto_url: fotoUrl }]);
+        if (!error) {
+          alert('¡Producto agregado al catálogo!');
+          e.target.reset();
+        }
+      }
+    }
+  </script>
 </body>
 </html>
