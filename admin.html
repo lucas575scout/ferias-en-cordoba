@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel SuperAdmin | Ferias en Córdoba</title>
+  <title>SuperAdmin General | Ferias en Córdoba</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,91 +25,173 @@
         <i class="fa-solid fa-user-shield text-brand-green text-2xl"></i>
         <span class="font-bold text-xl text-brand-dark">SuperAdmin General</span>
       </a>
-      <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
+      <div class="flex items-center gap-3">
+        <button onclick="cerrarSesion()" class="text-xs font-semibold text-red-600 border border-red-600 px-3 py-1.5 rounded-full hover:bg-red-600 hover:text-white transition">Cerrar Sesión</button>
+        <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
+      </div>
     </div>
   </header>
 
   <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
 
-    <!-- VINCULAR FERIANTE A FERIA -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
-        <i class="fa-solid fa-link text-brand-green"></i> Asignar Feriante a una Feria
+    <!-- SECCIÓN 1: EDITAR CUALQUIER FERIA -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-5">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2 border-b pb-3">
+        <i class="fa-solid fa-landmark text-brand-green"></i> Editar Cualquier Feria
       </h2>
 
-      <form id="form-vincular-feriante" class="space-y-4" onsubmit="vincularFerianteAFeria(event)">
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feria a Editar</label>
+        <select id="super-select-feria" onchange="cargarDatosFeriaEdit()" class="w-full p-2.5 border rounded-lg text-sm bg-gray-50 font-bold text-brand-dark">
+          <option value="">Seleccione una feria para cargar datos...</option>
+        </select>
+      </div>
+
+      <form id="form-super-feria" class="space-y-4 hidden" onsubmit="guardarSuperFeria(event)">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante</label>
-            <select id="select-feriante" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
-              <option value="">Cargando feriantes...</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre</label>
+            <input type="text" id="sf-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feria</label>
-            <select id="select-feria" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
-              <option value="">Cargando ferias...</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Dirección</label>
+            <input type="text" id="sf-direccion" class="w-full p-2.5 border rounded-lg text-sm">
           </div>
         </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
-          Guardar Vinculación
-        </button>
-      </form>
-    </div>
 
-    <!-- VINCULAR PRODUCTO A FERIANTE -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
-        <i class="fa-solid fa-boxes-packing text-brand-green"></i> Asignar Producto a un Feriante
-      </h2>
-
-      <form id="form-vincular-producto" class="space-y-4" onsubmit="vincularProductoAFeriante(event)">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Producto</label>
-            <select id="select-producto" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
-              <option value="">Cargando productos...</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante / Marca</label>
-            <select id="select-feriante-prod" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
-              <option value="">Cargando feriantes...</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
-          Asignar Producto
-        </button>
-      </form>
-    </div>
-
-    <!-- COORDENADAS DE MAPA PARA FERIAS -->
-    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2">
-        <i class="fa-solid fa-location-dot text-brand-green"></i> Ajustar Ubicación de Feria (Latitud / Longitud)
-      </h2>
-
-      <form id="form-coordenadas" class="space-y-4" onsubmit="guardarCoordenadas(event)">
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feria</label>
-          <select id="select-feria-coord" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
-            <option value="">Cargando ferias...</option>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción</label>
+          <textarea id="sf-descripcion" rows="2" class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">WhatsApp</label>
+            <input type="text" id="sf-whatsapp" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Instagram</label>
+            <input type="text" id="sf-instagram" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Latitud (Mapa)</label>
+            <input type="text" id="sf-lat" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Longitud (Mapa)</label>
+            <input type="text" id="sf-lng" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-100">
+          <span class="font-bold text-sm text-blue-900">🌧️ Modo Lluvia (Mal Tiempo)</span>
+          <input type="checkbox" id="sf-modo-lluvia" class="w-5 h-5 text-blue-600 rounded">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Cambiar Foto de Portada</label>
+          <input type="file" id="sf-portada" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+
+        <button type="submit" class="w-full bg-brand-green text-white font-bold py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Guardar Cambios en la Feria
+        </button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 2: EDITAR CUALQUIER FERIANTE -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-5">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2 border-b pb-3">
+        <i class="fa-solid fa-user-pen text-brand-green"></i> Editar Cualquier Feriante
+      </h2>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante a Editar</label>
+        <select id="super-select-feriante" onchange="cargarDatosFerianteEdit()" class="w-full p-2.5 border rounded-lg text-sm bg-gray-50 font-bold text-brand-dark">
+          <option value="">Seleccione un feriante para cargar datos...</option>
+        </select>
+      </div>
+
+      <form id="form-super-feriante" class="space-y-4 hidden" onsubmit="guardarSuperFeriante(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Comercial</label>
+          <input type="text" id="sft-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción</label>
+          <textarea id="sft-descripcion" rows="2" class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">WhatsApp</label>
+            <input type="text" id="sft-whatsapp" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Instagram</label>
+            <input type="text" id="sft-instagram" class="w-full p-2.5 border rounded-lg text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría / Rubro Principal</label>
+          <select id="sft-categoria" class="w-full p-2.5 border rounded-lg text-sm bg-white">
+            <option value="alimentacion">🟡 Alimentación</option>
+            <option value="textil">🔵 Textil y Moda</option>
+            <option value="artesanias">🔴 Artesanías (Bordó)</option>
+            <option value="impacto">🟢 Impacto / Natura</option>
+            <option value="servicios">⚪ Servicios / Accesorios / Otros</option>
           </select>
         </div>
+
+        <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+          <span class="font-bold text-sm text-emerald-900">🟢 Venta Online / Catálogo Activo</span>
+          <input type="checkbox" id="sft-activo" class="w-5 h-5 text-emerald-600 rounded">
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Latitud</label>
-            <input type="text" id="feria-lat" required placeholder="-31.4135" class="w-full p-2.5 border rounded-lg text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Cambiar Logo</label>
+            <input type="file" id="sft-logo" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Longitud</label>
-            <input type="text" id="feria-lng" required placeholder="-64.1810" class="w-full p-2.5 border rounded-lg text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Cambiar Portada</label>
+            <input type="file" id="sft-portada" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
         </div>
+
+        <button type="submit" class="w-full bg-brand-green text-white font-bold py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
+          Guardar Cambios en el Feriante
+        </button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 3: VINCULAR PRODUCTO A FERIANTE -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+      <h2 class="font-bold text-lg text-brand-dark flex items-center gap-2 border-b pb-3">
+        <i class="fa-solid fa-box text-brand-green"></i> Cargar Producto a Cualquier Feriante
+      </h2>
+      <form id="form-super-producto" class="space-y-4" onsubmit="guardarSuperProducto(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Feriante Propietario</label>
+          <select id="prod-select-feriante" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+            <option value="">Cargando feriantes...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
+          <input type="text" id="sprod-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
+          <input type="file" id="sprod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
         <button type="submit" class="bg-brand-green text-white font-bold px-5 py-2.5 rounded-lg text-sm hover:bg-brand-dark transition">
-          Actualizar Coordenadas
+          Guardar Producto
         </button>
       </form>
     </div>
@@ -121,85 +203,156 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Cargar listas desplegables al iniciar
-    document.addEventListener('DOMContentLoaded', () => {
-      cargarFerias();
-      cargarFeriantes();
-      cargarProductos();
-    });
-
-    async function cargarFerias() {
-      const { data } = await _supabase.from('ferias').select('id, nombre');
-      const selects = [document.getElementById('select-feria'), document.getElementById('select-feria-coord')];
-      
-      selects.forEach(select => {
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccione una feria...</option>';
-        if (data) {
-          data.forEach(f => {
-            select.innerHTML += `<option value="${f.id}">${f.nombre}</option>`;
-          });
-        }
-      });
-    }
-
-    async function cargarFeriantes() {
-      const { data } = await _supabase.from('feriantes').select('id, nombre');
-      const selects = [document.getElementById('select-feriante'), document.getElementById('select-feriante-prod')];
-      
-      selects.forEach(select => {
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccione un feriante...</option>';
-        if (data) {
-          data.forEach(f => {
-            select.innerHTML += `<option value="${f.id}">${f.nombre}</option>`;
-          });
-        }
-      });
-    }
-
-    async function cargarProductos() {
-      const { data } = await _supabase.from('productos').select('id, nombre');
-      const select = document.getElementById('select-producto');
-      if (!select) return;
-
-      select.innerHTML = '<option value="">Seleccione un producto...</option>';
-      if (data) {
-        data.forEach(p => {
-          select.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
-        });
+    // PROTECCIÓN DE SEGURIDAD
+    async function verificarSesion() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
       }
     }
 
-    async function vincularFerianteAFeria(e) {
-      e.preventDefault();
-      const feriante_id = document.getElementById('select-feriante').value;
-      const feria_id = document.getElementById('select-feria').value;
-
-      const { error } = await _supabase.from('feriantes_ferias').insert([{ feriante_id, feria_id }]);
-      if (!error) alert('¡Feriante asignado a la feria!');
-      else alert('Error: ' + error.message);
+    async function cerrarSesion() {
+      await _supabase.auth.signOut();
+      window.location.href = 'login.html';
     }
 
-    async function vincularProductoAFeriante(e) {
-      e.preventDefault();
-      const producto_id = document.getElementById('select-producto').value;
-      const feriante_id = document.getElementById('select-feriante-prod').value;
+    document.addEventListener('DOMContentLoaded', () => {
+      verificarSesion();
+      cargarSelectorFerias();
+      cargarSelectorFeriantes();
+    });
 
-      const { error } = await _supabase.from('productos').update({ feriante_id }).eq('id', producto_id);
-      if (!error) alert('¡Producto asignado al feriante!');
-      else alert('Error: ' + error.message);
+    // SUBIDA GENERAL DE IMÁGENES
+    async function subirImagen(inputElement, bucketName) {
+      const file = inputElement.files[0];
+      if (!file) return null;
+      const filename = `${Date.now()}_${Math.random().toString(36).substring(2,7)}.${file.name.split('.').pop()}`;
+      const { data, error } = await _supabase.storage.from(bucketName).upload(filename, file);
+      if (error) { alert('Error subiendo imagen: ' + error.message); return null; }
+      return _supabase.storage.from(bucketName).getPublicUrl(filename).data.publicUrl;
     }
 
-    async function guardarCoordenadas(e) {
-      e.preventDefault();
-      const feria_id = document.getElementById('select-feria-coord').value;
-      const lat = parseFloat(document.getElementById('feria-lat').value);
-      const lng = parseFloat(document.getElementById('feria-lng').value);
+    // LÓGICA DE FERIAS
+    async function cargarSelectorFerias() {
+      const { data } = await _supabase.from('ferias').select('id, nombre');
+      const select = document.getElementById('super-select-feria');
+      if (data && select) {
+        select.innerHTML = '<option value="">Seleccione una feria para cargar datos...</option>' +
+          data.map(f => `<option value="${f.id}">${f.nombre}</option>`).join('');
+      }
+    }
 
-      const { error } = await _supabase.from('ferias').update({ lat, lng }).eq('id', feria_id);
-      if (!error) alert('¡Ubicación de la feria actualizada!');
-      else alert('Error: ' + error.message);
+    async function cargarDatosFeriaEdit() {
+      const feriaId = document.getElementById('super-select-feria').value;
+      const form = document.getElementById('form-super-feria');
+      if (!feriaId) { form.classList.add('hidden'); return; }
+
+      const { data } = await _supabase.from('ferias').select('*').eq('id', feriaId).single();
+      if (data) {
+        document.getElementById('sf-nombre').value = data.nombre || '';
+        document.getElementById('sf-direccion').value = data.direccion || '';
+        document.getElementById('sf-descripcion').value = data.descripcion || '';
+        document.getElementById('sf-whatsapp').value = data.whatsapp || '';
+        document.getElementById('sf-instagram').value = data.instagram || '';
+        document.getElementById('sf-lat').value = data.lat || '';
+        document.getElementById('sf-lng').value = data.lng || '';
+        document.getElementById('sf-modo-lluvia').checked = !!data.modo_lluvia;
+        form.classList.remove('hidden');
+      }
+    }
+
+    async function guardarSuperFeria(e) {
+      e.preventDefault();
+      const id = document.getElementById('super-select-feria').value;
+      const portada_url = await subirImagen(document.getElementById('sf-portada'), 'logos-ferias');
+
+      const datos = {
+        nombre: document.getElementById('sf-nombre').value,
+        direccion: document.getElementById('sf-direccion').value,
+        descripcion: document.getElementById('sf-descripcion').value,
+        whatsapp: document.getElementById('sf-whatsapp').value,
+        instagram: document.getElementById('sf-instagram').value,
+        lat: parseFloat(document.getElementById('sf-lat').value) || null,
+        lng: parseFloat(document.getElementById('sf-lng').value) || null,
+        modo_lluvia: document.getElementById('sf-modo-lluvia').checked
+      };
+
+      if (portada_url) datos.portada_url = portada_url;
+
+      const { error } = await _supabase.from('ferias').update(datos).eq('id', id);
+      if (!error) alert('¡Feria actualizada exitosamente!');
+      else alert('Error al actualizar: ' + error.message);
+    }
+
+    // LÓGICA DE FERIANTES
+    async function cargarSelectorFeriantes() {
+      const { data } = await _supabase.from('feriantes').select('id, nombre');
+      const selects = [document.getElementById('super-select-feriante'), document.getElementById('prod-select-feriante')];
+      
+      selects.forEach(select => {
+        if (data && select) {
+          select.innerHTML = '<option value="">Seleccione un feriante...</option>' +
+            data.map(f => `<option value="${f.id}">${f.nombre}</option>`).join('');
+        }
+      });
+    }
+
+    async function cargarDatosFerianteEdit() {
+      const ferianteId = document.getElementById('super-select-feriante').value;
+      const form = document.getElementById('form-super-feriante');
+      if (!ferianteId) { form.classList.add('hidden'); return; }
+
+      const { data } = await _supabase.from('feriantes').select('*').eq('id', ferianteId).single();
+      if (data) {
+        document.getElementById('sft-nombre').value = data.nombre || '';
+        document.getElementById('sft-descripcion').value = data.descripcion || '';
+        document.getElementById('sft-whatsapp').value = data.whatsapp || '';
+        document.getElementById('sft-instagram').value = data.instagram || '';
+        document.getElementById('sft-categoria').value = data.categoria || 'servicios';
+        document.getElementById('sft-activo').checked = !!data.activo;
+        form.classList.remove('hidden');
+      }
+    }
+
+    async function guardarSuperFeriante(e) {
+      e.preventDefault();
+      const id = document.getElementById('super-select-feriante').value;
+      const logo_url = await subirImagen(document.getElementById('sft-logo'), 'logos-feriantes');
+      const portada_url = await subirImagen(document.getElementById('sft-portada'), 'logos-feriantes');
+
+      const datos = {
+        nombre: document.getElementById('sft-nombre').value,
+        descripcion: document.getElementById('sft-descripcion').value,
+        whatsapp: document.getElementById('sft-whatsapp').value,
+        instagram: document.getElementById('sft-instagram').value,
+        categoria: document.getElementById('sft-categoria').value,
+        activo: document.getElementById('sft-activo').checked
+      };
+
+      if (logo_url) datos.logo_url = logo_url;
+      if (portada_url) datos.portada_url = portada_url;
+
+      const { error } = await _supabase.from('feriantes').update(datos).eq('id', id);
+      if (!error) alert('¡Feriante actualizado exitosamente!');
+      else alert('Error al actualizar: ' + error.message);
+    }
+
+    // CARGAR PRODUCTO A CUALQUIER FERIANTE
+    async function guardarSuperProducto(e) {
+      e.preventDefault();
+      const feriante_id = document.getElementById('prod-select-feriante').value;
+      const nombre = document.getElementById('sprod-nombre').value;
+      const foto_url = await subirImagen(document.getElementById('sprod-foto'), 'productos');
+
+      if (foto_url && feriante_id) {
+        const { error } = await _supabase.from('productos').insert([{ nombre, foto_url, feriante_id }]);
+        if (!error) {
+          alert('¡Producto guardado y asignado!');
+          e.target.reset();
+        } else {
+          alert('Error: ' + error.message);
+        }
+      }
     }
   </script>
 </body>
