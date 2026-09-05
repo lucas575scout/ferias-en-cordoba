@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Feriante - EcoFerias Córdoba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+    <header class="bg-amber-600 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="font-bold text-lg">Panel Emprendimiento / Feriante</h1>
+        <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs font-semibold">Cerrar Sesión</button>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-6 space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow space-y-4">
+            <h2 class="text-xl font-bold text-amber-900 border-b pb-2">⚡ Venta Directa (Modo Activo)</h2>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-sm">Disponible para Venta Hoy</h3>
+                    <p class="text-xs text-slate-500">Activá este interruptor cuando estés produciendo o atendiendo de forma directa fuera de los días de feria.</p>
+                </div>
+                <input type="checkbox" id="check-modo-activo" class="w-6 h-6 text-amber-600 rounded">
+            </div>
+        </div>
+    </main>
+
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
