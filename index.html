@@ -4,20 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- SEO / META BÁSICO -->
+  <!-- SEO & Open Graph -->
   <title id="meta-title">Ferias en Córdoba | Red de Comercio Local y Sustentable</title>
-  <meta id="meta-desc" name="description" content="Encontrá ferias francas, de la economía social y de impacto en Córdoba. Mapeo en vivo, productos locales y cálculo de huella de carbono.">
+  <meta id="meta-desc" name="description" content="Descubrí las ferias barriales en Córdoba Capital, encontrá productos artesanales de Km 0 y apoyá la economía local.">
+  <meta property="og:title" content="Ferias en Córdoba - Economía Local y Sustentable">
+  <meta property="og:description" content="Encontrá ferias, emprendedores locales y productos de cercanía en Córdoba.">
+  <meta property="og:type" content="website">
 
-  <!-- CDNs EXTERNOS (TailwindCSS, FontAwesome, Supabase, Leaflet) -->
+  <!-- CDNs: Tailwind CSS, FontAwesome e SDK de Supabase -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- Leaflet Maps CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- CONFIGURACIÓN DE COLORES PERSONALIZADOS EN TAILWIND -->
   <script>
     tailwind.config = {
       theme: {
@@ -28,6 +26,7 @@
               lightgreen: '#E8F5E9',
               yellow: '#FBC02D',
               blue: '#0288D1',
+              bordo: '#8E24AA',
               dark: '#1B5E20'
             }
           }
@@ -48,9 +47,7 @@
       <nav class="hidden md:flex gap-6 font-medium items-center">
         <a href="index.html" class="text-brand-green hover:underline">Inicio</a>
         <a href="huella.html" class="hover:text-brand-green">Huella de Carbono</a>
-        <a href="login.html" class="text-xs font-semibold border border-brand-green text-brand-green hover:bg-brand-green hover:text-white px-3 py-1.5 rounded-full transition">
-          Ingresar
-        </a>
+        <a href="login.html" class="text-xs font-semibold border border-brand-green text-brand-green hover:bg-brand-green hover:text-white px-3 py-1.5 rounded-full transition">Ingresar</a>
       </nav>
       <!-- Botón Sumá tu Feria / Soporte Directo WhatsApp -->
       <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
@@ -60,267 +57,253 @@
     </div>
   </header>
 
-  <!-- BANNER MODO LLUVIA GLOBAL (SE MUESTRA SOLO SI HAY ALERTA) -->
-  <div id="banner-lluvia-global" class="hidden bg-blue-600 text-white text-center py-2 px-4 font-semibold text-sm flex justify-center items-center gap-2">
+  <!-- BANNER DE ALERTA: MODO LLUVIA GLOBAL -->
+  <div id="banner-lluvia-global" class="hidden bg-blue-600 text-white text-center py-2 px-4 font-semibold flex justify-center items-center gap-2">
     <i class="fa-solid fa-cloud-showers-heavy text-lg"></i>
-    <span id="txt-lluvia-mensaje">¡Alerta por Lluvia! Algunas ferias al aire libre pueden estar suspendidas hoy. Verificá en cada perfil antes de ir.</span>
+    <span id="txt-alerta-lluvia">¡Atención! Por condiciones climáticas, algunas ferias presenciales se encuentran suspendidas. ¡Podés comprarles online con envío!</span>
   </div>
 
-  <!-- HERO SECTION -->
-  <section class="bg-brand-lightgreen py-8 px-4 border-b">
-    <div class="max-w-4xl mx-auto text-center space-y-3">
-      <h1 class="text-3xl md:text-5xl font-extrabold text-brand-dark">
-        Descubrí la Red de Ferias de Córdoba
+  <!-- SECCIÓN HERO Y TEXTOS EDITABLES DESDE SUPABASE -->
+  <section class="bg-brand-lightgreen py-10 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 id="txt-hero-titulo" class="text-3xl md:text-5xl font-extrabold text-brand-dark mb-4">
+        Descubrí la Economía Local
       </h1>
-      <p class="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
-        Comprá directo a productores y emprendedores locales. Apoyá la economía barrial, el consumo sustentable y la huella ecológica reducida.
+      <p id="txt-hero-subtitulo" class="text-gray-700 text-base md:text-lg mb-6">
+        Encontrá ferias barriales, productos artesanales y emprendimientos de cercanía en Córdoba.
       </p>
-      
-      <!-- BUSCADOR RÁPIDO Y FILTROS -->
-      <div class="pt-2 max-w-xl mx-auto flex flex-col sm:flex-row gap-2">
-        <div class="relative flex-grow">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
-          <input type="text" id="input-buscar" onkeyup="filtrarContenido()" placeholder="Buscar feria, barrio o feriante..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green bg-white text-sm">
+
+      <!-- TARJETA CONTADOR DE HUELLA GLOBAL -->
+      <div class="bg-white p-6 rounded-2xl shadow-lg border border-green-200 inline-block w-full max-w-md">
+        <div class="flex justify-center items-center gap-3 text-brand-green mb-2">
+          <i class="fa-solid fa-tree text-3xl"></i>
+          <span class="text-sm font-semibold uppercase tracking-wide" id="txt-label-huella">Impacto Ecológico Acumulado</span>
         </div>
-        <button onclick="buscarGeolocalizacion()" class="bg-brand-green hover:bg-brand-dark text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition shadow">
-          <i class="fa-solid fa-location-crosshairs"></i> Cerca mío
-        </button>
+        <div class="text-4xl font-black text-gray-900" id="cnt-huella-global">0.00 kg</div>
+        <p class="text-xs text-gray-500 mt-1" id="txt-sub-huella">CO₂ evitado consumiendo productos de cercanía (Km 0)</p>
       </div>
     </div>
   </section>
 
-  <!-- MAPA INTERACTIVO -->
-  <section class="max-w-7xl mx-auto px-4 py-6 w-full">
-    <div class="bg-white p-3 rounded-2xl border shadow-sm">
-      <div class="flex justify-between items-center mb-3 px-2">
-        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-map-location-dot text-brand-green"></i> Mapa de Ferias en Vivo
-        </h2>
-        <span class="text-xs text-gray-500">Hacé clic en un marcador para ver la feria</span>
-      </div>
-      <!-- Contenedor del Mapa Leaflet -->
-      <div id="map" class="w-full h-80 md:h-96 rounded-xl border"></div>
+  <!-- CARRUSEL DINÁMICO (Flyers Vigentes + Productos Destacados max 2 por feriante) -->
+  <section class="max-w-7xl mx-auto px-4 py-8">
+    <h2 id="txt-carrusel-titulo" class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-star text-brand-yellow"></i> Novedades y Destacados
+    </h2>
+    <div id="carrusel-container" class="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
+      <div class="text-gray-400 text-sm">Cargando destacados...</div>
     </div>
   </section>
 
-  <!-- SECCIÓN PRINCIPAL: LISTADO DE FERIAS Y BANNER DE NOVEDADES -->
-  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow w-full">
-    
-    <!-- COLUMNA IZQUIERDA Y CENTRO: DIRECTORIO DE FERIAS -->
-    <div class="lg:col-span-2 space-y-6">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-store text-brand-green"></i> Ferias Francas y Barriales
-        </h2>
-        <span id="cnt-ferias" class="text-xs font-semibold bg-brand-lightgreen text-brand-dark px-3 py-1 rounded-full">Cargando...</span>
-      </div>
-
-      <!-- GRID DE TARJETAS DE FERIAS -->
-      <div id="grid-ferias" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <!-- Se llena dinámicamente con JS desde Supabase -->
-        <p class="text-xs text-gray-400 col-span-2">Cargando catálogo de ferias...</p>
-      </div>
-    </div>
-
-    <!-- COLUMNA DERECHA: NOVEDADES / EVENTOS Y RESUMEN DE HUELLA -->
-    <div class="space-y-6">
+  <!-- BUSCADOR DE PRODUCTOS Y FILTRO POR MANTELES -->
+  <section class="max-w-7xl mx-auto px-4 py-6">
+    <div class="bg-white p-6 rounded-xl shadow-md border">
+      <h2 id="txt-buscador-titulo" class="text-xl font-bold mb-4">¿Qué estás buscando hoy?</h2>
       
-      <!-- CARRUSEL / LISTA DE NOVEDADES Y PRODUCTOS DESTACADOS -->
-      <div class="bg-white p-5 rounded-2xl border shadow-sm">
-        <h3 class="font-bold text-gray-800 text-base mb-3 flex items-center gap-2">
-          <i class="fa-solid fa-bullhorn text-brand-green"></i> Muro de Avisos y Novedades
-        </h3>
-        <div id="muro-novedades-global" class="space-y-3">
-          <p class="text-xs text-gray-400">Cargando eventos y publicaciones...</p>
-        </div>
+      <!-- Buscador por Texto -->
+      <div class="relative mb-6">
+        <input type="text" id="input-busqueda" onkeyup="filtrarPorTexto()" placeholder="Buscar producto (ej: bizcochuelo, plantas, mates)..." class="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
       </div>
 
-      <!-- TARJETA DE IMPACTO - HUELLA DE CARBONO GLOBAL -->
-      <div class="bg-white p-5 rounded-2xl border shadow-sm text-center">
-        <i class="fa-solid fa-leaf text-3xl text-brand-green mb-2"></i>
-        <h3 class="font-bold text-gray-800 text-sm">Impacto Colectivo Ahorrado</h3>
-        <div id="cnt-co2-global" class="text-3xl font-black text-brand-dark my-1">0.00 kg</div>
-        <p class="text-xs text-gray-500 mb-3">CO₂ evitado por consumo local de cercanía en Córdoba.</p>
-        <a href="huella.html" class="inline-block text-xs font-bold text-brand-green hover:underline">Ver calculadora e impacto →</a>
+      <!-- Filtro Visual por Manteles (Categorías) -->
+      <p id="txt-manteles-label" class="text-sm font-semibold text-gray-600 mb-3">Filtrar por color de mantel (Rubro):</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <button onclick="filtrarMantel('todos')" class="p-3 rounded-lg border text-center font-medium bg-gray-100 hover:bg-gray-200 transition">⚪ Todos</button>
+        <button onclick="filtrarMantel('amarillo')" class="p-3 rounded-lg border text-center font-semibold text-yellow-900 bg-yellow-200 hover:bg-yellow-300 transition">🟡 Alimentación</button>
+        <button onclick="filtrarMantel('azul')" class="p-3 rounded-lg border text-center font-semibold text-blue-900 bg-blue-200 hover:bg-blue-300 transition">🔵 Textil y Moda</button>
+        <button onclick="filtrarMantel('bordo')" class="p-3 rounded-lg border text-center font-semibold text-purple-900 bg-purple-200 hover:bg-purple-300 transition">🔴 Artesanías</button>
+        <button onclick="filtrarMantel('verde')" class="p-3 rounded-lg border text-center font-semibold text-green-900 bg-green-200 hover:bg-green-300 transition">🟢 Impacto / Natura</button>
       </div>
-
     </div>
+  </section>
 
-  </main>
+  <!-- DIRECTORIO DE FERIAS BARRIALES -->
+  <section class="max-w-7xl mx-auto px-4 py-8 flex-grow">
+    <h2 id="txt-directorio-titulo" class="text-2xl font-bold text-gray-800 mb-6">Ferias de la Ciudad</h2>
+    <div id="grid-ferias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="text-gray-400">Cargando directorio de ferias...</div>
+    </div>
+  </section>
+
+  <!-- BOTÓN FLOTANTE WHATSAPP (Soporte Directo) -->
+  <a id="btn-flotante-wsp" href="#" target="_blank" class="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl flex items-center justify-center text-2xl transition hover:scale-110 z-50">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
 
   <!-- FOOTER -->
-  <footer class="bg-gray-800 text-gray-300 py-6 mt-10">
-    <div class="max-w-7xl mx-auto px-4 text-center text-sm space-y-2">
-      <p>© 2026 Ferias en Córdoba - Impulsando la Economía Social y el Consumo Responsable.</p>
-      <div class="flex justify-center gap-4 text-xs text-gray-400">
-        <a href="huella.html" class="hover:text-white">Huella Ecológica</a>
-        <a href="login.html" class="hover:text-white">Acceso Ferias / Feriantes</a>
-      </div>
+  <footer class="bg-gray-800 text-gray-300 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+      <p id="txt-footer-copyright">© 2026 Ferias en Córdoba - Impulsando la Economía Social y el Consumo Responsable.</p>
     </div>
   </footer>
 
-  <!-- SCRIPT CONEXIÓN SUPABASE Y LÓGICA DE MAPA / DATOS -->
+  <!-- SCRIPT DE CONEXIÓN Y LÓGICA CORE -->
   <script>
     const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let map = null;
-    let markers = [];
+    const NUMERO_SOPORTE_WSP = '5493510000000'; // Reemplazar por tu número de WhatsApp
+
     let feriasCache = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
-      initMap();
-      await cargarConfiguracionGlobal();
-      await cargarFerias();
-      await cargarNovedadesGlobales();
+      configurarLinksSoporte();
+      await cargarTextosEditables();
       await cargarHuellaGlobal();
+      await cargarCarrusel();
+      await cargarFerias();
     });
 
-    // Inicializar Mapa Leaflet con centro en Córdoba Capital
-    function initMap() {
-      map = L.map('map').setView([-31.4167, -64.1833], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
+    function configurarLinksSoporte() {
+      const msg = encodeURIComponent('Hola! Quisiera obtener información sobre Ferias en Córdoba.');
+      const urlWsp = `https://wa.me/${NUMERO_SOPORTE_WSP}?text=${msg}`;
+      document.getElementById('btn-soporte-header').href = urlWsp;
+      document.getElementById('btn-flotante-wsp').href = urlWsp;
     }
 
-    // Cargar datos globales desde Supabase (WhatsApp Soporte, Mensaje Lluvia)
-    async function cargarConfiguracionGlobal() {
-      const { data: config } = await _supabase.from('configuracion_global').select('*').single();
-      if (config) {
-        if (config.whatsapp_soporte) {
-          document.getElementById('btn-soporte-header').href = `https://wa.me/${config.whatsapp_soporte}`;
-        }
-        if (config.modo_lluvia_global) {
-          document.getElementById('banner-lluvia-global').classList.remove('hidden');
-        }
-      }
-    }
-
-    // Cargar ferias y posicionarlas en el mapa
-    async function cargarFerias() {
-      const { data: ferias } = await _supabase.from('ferias').select('*');
-      feriasCache = ferias || [];
-
-      document.getElementById('cnt-ferias').innerText = `${feriasCache.length} Ferias`;
-      renderizarFerias(feriasCache);
-    }
-
-    function renderizarFerias(lista) {
-      const container = document.getElementById('grid-ferias');
-      container.innerHTML = '';
-
-      // Limpiar marcadores antiguos
-      markers.forEach(m => map.removeLayer(m));
-      markers = [];
-
-      if (lista.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">No se encontraron ferias con ese término.</p>';
-        return;
-      }
-
-      lista.forEach(f => {
-        // Marcador en el mapa
-        if (f.latitud && f.longitud) {
-          const marker = L.marker([f.latitud, f.longitud]).addTo(map);
-          marker.bindPopup(`
-            <div class="text-center font-sans">
-              <strong class="text-sm text-gray-900">${f.nombre}</strong><br>
-              <span class="text-xs text-gray-600">${f.direccion || 'Córdoba Capital'}</span><br>
-              <a href="feria.html?id=${f.id}" class="text-xs text-green-700 font-bold underline mt-1 inline-block">Ver detalles</a>
-            </div>
-          `);
-          markers.push(marker);
-        }
-
-        // Tarjeta en el grid
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition';
-        card.innerHTML = `
-          <div>
-            <div class="h-32 bg-gray-200 relative">
-              <img src="${f.portada_url || 'https://via.placeholder.com/400x200'}" class="w-full h-full object-cover">
-              ${f.modo_lluvia ? '<span class="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow"><i class="fa-solid fa-cloud-showers-heavy"></i> Lluvia</span>' : ''}
-            </div>
-            <div class="p-4">
-              <h3 class="font-bold text-gray-900 text-base mb-1">${f.nombre}</h3>
-              <p class="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                <i class="fa-solid fa-location-dot text-red-500"></i> ${f.direccion || 'Córdoba Capital'}
-              </p>
-              <p class="text-xs text-gray-600 line-clamp-2">${f.descripcion || 'Sin descripción disponible.'}</p>
-            </div>
-          </div>
-          <div class="px-4 pb-4 pt-2 border-t flex justify-between items-center">
-            <a href="feria.html?id=${f.id}" class="text-xs font-bold text-brand-green hover:underline flex items-center gap-1">
-              Ver Feria <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            ${f.whatsapp ? `<a href="https://wa.me/${f.whatsapp}" target="_blank" class="text-green-600 hover:text-green-700"><i class="fa-brands fa-whatsapp text-lg"></i></a>` : ''}
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Buscador interactivo
-    function filtrarContenido() {
-      const q = document.getElementById('input-buscar').value.toLowerCase();
-      const filtradas = feriasCache.filter(f => 
-        f.nombre.toLowerCase().includes(q) || 
-        (f.direccion && f.direccion.toLowerCase().includes(q))
-      );
-      renderizarFerias(filtradas);
-    }
-
-    // Geolocation del usuario
-    function buscarGeolocalizacion() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          map.setView([lat, lng], 14);
-          L.marker([lat, lng]).addTo(map).bindPopup('<b>Tu ubicación</b>').openPopup();
-        }, () => {
-          alert('No se pudo acceder a tu ubicación.');
+    async function cargarTextosEditables() {
+      const { data } = await _supabase.from('textos_app').select('*');
+      if (data) {
+        data.forEach(item => {
+          const el = document.getElementById(item.clave);
+          if (el) el.innerText = item.valor;
         });
       }
     }
 
-    // Cargar mural de avisos globales
-    async function cargarNovedadesGlobales() {
-      const hoy = new Date().toISOString().split('T')[0];
-      const { data: avisos } = await _supabase
-        .from('publicaciones_feria')
-        .select('*, ferias(nombre)')
-        .gte('fecha_vencimiento', hoy)
-        .limit(3);
-
-      const container = document.getElementById('muro-novedades-global');
-      container.innerHTML = '';
-
-      if (!avisos || avisos.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No hay anuncios o eventos próximos esta semana.</p>';
-        return;
-      }
-
-      avisos.forEach(a => {
-        const item = document.createElement('div');
-        item.className = 'p-3 bg-gray-50 rounded-xl border text-xs';
-        item.innerHTML = `
-          <span class="text-[10px] font-bold text-brand-green uppercase">${a.ferias?.nombre || 'Feria'}</span>
-          <h4 class="font-bold text-gray-800 text-sm mt-0.5">${a.titulo}</h4>
-          <p class="text-gray-600 mt-1 line-clamp-2">${a.descripcion || ''}</p>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    // Cargar ahorro total de Huella de Carbono
     async function cargarHuellaGlobal() {
       const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
       if (data) {
-        const total = data.reduce((acc, c) => acc + (Number(c.co2_ahorrado_kg) || 0), 0);
-        document.getElementById('cnt-co2-global').innerText = `${total.toFixed(2)} kg`;
+        const total = data.reduce((acc, curr) => acc + (Number(curr.co2_ahorrado_kg) || 0), 0);
+        document.getElementById('cnt-huella-global').innerText = `${total.toFixed(2)} kg`;
+      }
+    }
+
+    async function cargarCarrusel() {
+      const container = document.getElementById('carrusel-container');
+      container.innerHTML = '';
+
+      const hoy = new Date().toISOString().split('T')[0];
+      const { data: publis } = await _supabase
+        .from('publicaciones_feria')
+        .select('*')
+        .eq('destacado', true)
+        .gte('fecha_vencimiento', hoy);
+
+      const { data: prods } = await _supabase
+        .from('productos_feriante')
+        .select('*, feriantes(nombre_emprendimiento)')
+        .eq('destacado', true);
+
+      let items = [];
+      if (publis) items.push(...publis.map(p => ({ ...p, tipo: 'publicacion' })));
+      if (prods) items.push(...prods.map(p => ({ ...p, tipo: 'producto' })));
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500">No hay destacados activos hoy.</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'min-w-[260px] max-w-[260px] bg-white rounded-xl border shadow-sm p-3 flex-shrink-0';
+        
+        if (item.tipo === 'publicacion') {
+          card.innerHTML = `
+            <img src="${item.imagen_url || 'https://via.placeholder.com/260x140'}" class="w-full h-36 object-cover rounded-lg mb-2">
+            <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">Evento / Novedad</span>
+            <h3 class="font-bold text-sm mt-1 line-clamp-1">${item.titulo}</h3>
+            <p class="text-xs text-gray-600 line-clamp-2">${item.descripcion || ''}</p>
+          `;
+        } else {
+          card.innerHTML = `
+            <img src="${item.imagen_url || 'https://via.placeholder.com/260x140'}" class="w-full h-36 object-cover rounded-lg mb-2">
+            <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded">Producto Destacado</span>
+            <h3 class="font-bold text-sm mt-1 line-clamp-1">${item.nombre}</h3>
+            <p class="text-xs text-gray-500">${item.feriantes?.nombre_emprendimiento || ''}</p>
+            <p class="text-sm font-bold text-brand-green mt-1">$${item.precio}</p>
+          `;
+        }
+        container.appendChild(card);
+      });
+    }
+
+    async function cargarFerias() {
+      const grid = document.getElementById('grid-ferias');
+      grid.innerHTML = '';
+
+      const { data: ferias } = await _supabase.from('ferias').select('*');
+      feriasCache = ferias || [];
+
+      if (feriasCache.length === 0) {
+        grid.innerHTML = '<p class="text-gray-500">No hay ferias registradas actualmente.</p>';
+        return;
+      }
+
+      // Verificar si hay alguna feria en modo lluvia para mostrar el banner global
+      const algunaLluvia = feriasCache.some(f => f.modo_lluvia);
+      if (algunaLluvia) {
+        document.getElementById('banner-lluvia-global').classList.remove('hidden');
+      }
+
+      renderizarFerias(feriasCache);
+    }
+
+    function renderizarFerias(lista) {
+      const grid = document.getElementById('grid-ferias');
+      grid.innerHTML = '';
+
+      if (lista.length === 0) {
+        grid.innerHTML = '<p class="text-gray-500">No se encontraron ferias con ese criterio.</p>';
+        return;
+      }
+
+      lista.forEach(feria => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border shadow-md overflow-hidden flex flex-col justify-between';
+        
+        card.innerHTML = `
+          <div>
+            <div class="relative h-40 bg-gray-200">
+              <img src="${feria.portada_url || 'https://via.placeholder.com/400x160'}" class="w-full h-full object-cover">
+              <span class="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold ${feria.activo ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}">
+                ${feria.activo ? 'Activa' : 'Inactiva'}
+              </span>
+              ${feria.modo_lluvia ? '<span class="absolute top-3 left-3 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-bold">🌧️ M. Lluvia</span>' : ''}
+            </div>
+            <div class="p-5">
+              <h3 class="text-xl font-bold text-gray-900 mb-1">${feria.nombre}</h3>
+              <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-location-dot text-red-500"></i> ${feria.direccion || 'Córdoba'}</p>
+              <p class="text-sm text-gray-600 line-clamp-2 mb-4">${feria.descripcion || ''}</p>
+            </div>
+          </div>
+          <div class="p-5 pt-0 flex gap-2">
+            <a href="feria.html?id=${feria.id}" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold py-2 rounded-lg transition">Ver Feria</a>
+            <a href="${feria.link_mapa || '#'}" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition">
+              <i class="fa-solid fa-route"></i> Cómo llegar
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filtrarPorTexto() {
+      const query = document.getElementById('input-busqueda').value.toLowerCase();
+      const filtradas = feriasCache.filter(f => 
+        f.nombre.toLowerCase().includes(query) || 
+        (f.descripcion && f.descripcion.toLowerCase().includes(query))
+      );
+      renderizarFerias(filtradas);
+    }
+
+    function filtrarMantel(color) {
+      if (color === 'todos') {
+        renderizarFerias(feriasCache);
+      } else {
+        renderizarFerias(feriasCache);
       }
     }
   </script>
