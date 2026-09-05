@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Carga y Administración | Ferias en Córdoba</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: { green: '#2E7D32', lightgreen: '#E8F5E9', dark: '#1B5E20' } }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-2">
+        <i class="fa-solid fa-store text-brand-green text-2xl"></i>
+        <span class="font-bold text-xl text-brand-dark">Panel de Administración</span>
+      </a>
+      <a href="index.html" class="text-xs font-semibold text-brand-green border border-brand-green px-3 py-1.5 rounded-full hover:bg-brand-green hover:text-white transition">Volver al Sitio</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
+
+    <!-- SECCIÓN 1: SUBIR LOGO DE FERIA -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-landmark text-brand-green"></i> Subir Logo de Feria
+      </h2>
+      <form id="form-feria" class="space-y-4" onsubmit="guardarFeria(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre de la Feria</label>
+          <input type="text" id="feria-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Logo / Imagen de Portada</label>
+          <input type="file" id="feria-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Feria</button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 2: SUBIR LOGO DE FERIANTE -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-user-gear text-brand-green"></i> Registrar Feriante y Logo
+      </h2>
+      <form id="form-feriante" class="space-y-4" onsubmit="guardarFeriante(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Feriante / Emprendimiento</label>
+          <input type="text" id="feriante-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Logo del Emprendimiento</label>
+          <input type="file" id="feriante-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Feriante</button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 3: SUBIR PRODUCTO -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-box text-brand-green"></i> Cargar Producto
+      </h2>
+      <form id="form-producto" class="space-y-4" onsubmit="guardarProducto(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
+          <input type="text" id="prod-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
+          <input type="file" id="prod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Producto</button>
+      </form>
+    </div>
+
+    <!-- SECCIÓN 4: SUBIR FLYER / EVENTO -->
+    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-calendar-plus text-brand-green"></i> Publicar Evento / Novedad
+      </h2>
+      <form id="form-evento" class="space-y-4" onsubmit="guardarEvento(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Título del Evento / Novedad</label>
+          <input type="text" id="evento-titulo" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Flyer Promocional</label>
+          <input type="file" id="evento-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
+        <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Evento</button>
+      </form>
+    </div>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // FUNCIÓN CENTRAL PARA SUBIR CUALQUIER FOTO A CUALQUIER BUCKET
+    async function subirFoto(inputElement, bucketName) {
+      const file = inputElement.files[0];
+      if (!file) return null;
+
+      const ext = file.name.split('.').pop();
+      const filename = `${Date.now()}_${Math.random().toString(36).substring(2,7)}.${ext}`;
+
+      const { data, error } = await _supabase.storage.from(bucketName).upload(filename, file);
+      if (error) {
+        alert('Error al subir la imagen: ' + error.message);
+        return null;
+      }
+
+      const { data: urlData } = _supabase.storage.from(bucketName).getPublicUrl(filename);
+      return urlData.publicUrl;
+    }
+
+    // ACCIONES DE CADA FORMULARIO
+    async function guardarFeria(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('feria-nombre').value;
+      const url = await subirFoto(document.getElementById('feria-foto'), 'logos-ferias');
+      
+      if (url) {
+        const { error } = await _supabase.from('ferias').insert([{ nombre, portada_url: url }]);
+        if (!error) { alert('¡Feria guardada con éxito!'); e.target.reset(); }
+      }
+    }
+
+    async function guardarFeriante(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('feriante-nombre').value;
+      const url = await subirFoto(document.getElementById('feriante-foto'), 'logos-feriantes');
+      
+      if (url) {
+        const { error } = await _supabase.from('feriantes').insert([{ nombre, logo_url: url }]);
+        if (!error) { alert('¡Feriante guardado con éxito!'); e.target.reset(); }
+      }
+    }
+
+    async function guardarProducto(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('prod-nombre').value;
+      const url = await subirFoto(document.getElementById('prod-foto'), 'productos');
+      
+      if (url) {
+        const { error } = await _supabase.from('productos').insert([{ nombre, foto_url: url }]);
+        if (!error) { alert('¡Producto guardado con éxito!'); e.target.reset(); }
+      }
+    }
+
+    async function guardarEvento(e) {
+      e.preventDefault();
+      const titulo = document.getElementById('evento-titulo').value;
+      const url = await subirFoto(document.getElementById('evento-foto'), 'flyers-eventos');
+      
+      if (url) {
+        const { error } = await _supabase.from('eventos').insert([{ titulo, imagen_url: url }]);
+        if (!error) { alert('¡Evento guardado con éxito!'); e.target.reset(); }
+      }
+    }
+  </script>
+</body>
+</html>
