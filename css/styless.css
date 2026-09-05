@@ -1,0 +1,33 @@
+/* Estilos Globales y Paleta Oficial de Manteles EcoFerias */
+
+.scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Clases de Identificación por Mantel */
+.mantel-1 { border-left: 6px solid #FACC15; } /* Alimentación (Amarillo) */
+.mantel-2 { border-left: 6px solid #3B82F6; } /* Textil y Moda (Azul) */
+.mantel-3 { border-left: 6px solid #800020; } /* Tradicional y Artesanías (Bordó) */
+.mantel-4 { border-left: 6px solid #22C55E; } /* Impacto / Naturaleza (Verde) */
+.mantel-5 { border-left: 6px solid #94A3B8; } /* Varios (Blanco / Gris) */
+
+.skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
