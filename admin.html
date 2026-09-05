@@ -69,34 +69,25 @@
     </div>
 
     <!-- SECCIÓN 3: CARGAR PRODUCTO (CON VÍNCULO A FERIANTE) -->
-<div class="bg-white p-6 rounded-2xl border shadow-sm">
-  <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
-    <i class="fa-solid fa-box text-brand-green"></i> Cargar Producto
-  </h2>
-  <form id="form-producto" class="space-y-4" onsubmit="guardarProducto(event)">
-    
-    <div>
-      <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
-      <input type="text" id="prod-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
-    </div>
-
-    <div>
-      <label class="block text-xs font-semibold text-gray-600 mb-1">Feriante / Emprendimiento Propietario</label>
-      <select id="prod-feriante-id" required class="w-full p-2.5 border rounded-lg text-sm bg-white">
-        <option value="">Cargando feriantes...</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
-      <input type="file" id="prod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
-    </div>
-
-    <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">
-      Guardar Producto
-    </button>
-  </form>
-</div>
+    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+      <h2 class="font-bold text-lg text-brand-dark mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-box text-brand-green"></i> Cargar Producto
+      </h2>
+      <form id="form-producto" class="space-y-4" onsubmit="guardarProducto(event)">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Producto</label>
+          <input type="text" id="prod-nombre" required class="w-full p-2.5 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Feriante / Emprendimiento Propietario</label>
+          <select id="prod-feriante-id" required class="w-full p-2.5 border rounded-lg text-sm bg-white">
+            <option value="">Cargando feriantes...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Foto del Producto</label>
+          <input type="file" id="prod-foto" accept="image/*" required class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+        </div>
         <button type="submit" class="bg-brand-green text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-brand-dark transition">Guardar Producto</button>
       </form>
     </div>
@@ -126,6 +117,17 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Cargar la lista de feriantes en el desplegable apenas abre la página
+    async function cargarListaFeriantes() {
+      const { data: feriantes } = await _supabase.from('feriantes').select('id, nombre');
+      const select = document.getElementById('prod-feriante-id');
+      if (feriantes && select) {
+        select.innerHTML = '<option value="">Seleccionar Feriante...</option>' + 
+          feriantes.map(f => `<option value="${f.id}">${f.nombre}</option>`).join('');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', cargarListaFeriantes);
+
     // FUNCIÓN CENTRAL PARA SUBIR CUALQUIER FOTO A CUALQUIER BUCKET
     async function subirFoto(inputElement, bucketName) {
       const file = inputElement.files[0];
@@ -149,10 +151,13 @@
       e.preventDefault();
       const nombre = document.getElementById('feria-nombre').value;
       const url = await subirFoto(document.getElementById('feria-foto'), 'logos-ferias');
-      
+
       if (url) {
         const { error } = await _supabase.from('ferias').insert([{ nombre, portada_url: url }]);
-        if (!error) { alert('¡Feria guardada con éxito!'); e.target.reset(); }
+        if (!error) { 
+          alert('¡Feria guardada con éxito!'); 
+          e.target.reset(); 
+        }
       }
     }
 
@@ -160,21 +165,33 @@
       e.preventDefault();
       const nombre = document.getElementById('feriante-nombre').value;
       const url = await subirFoto(document.getElementById('feriante-foto'), 'logos-feriantes');
-      
+
       if (url) {
         const { error } = await _supabase.from('feriantes').insert([{ nombre, logo_url: url }]);
-        if (!error) { alert('¡Feriante guardado con éxito!'); e.target.reset(); }
+        if (!error) { 
+          alert('¡Feriante guardado con éxito!'); 
+          e.target.reset(); 
+          cargarListaFeriantes(); // Actualiza el desplegable de productos automáticamente
+        }
       }
     }
 
     async function guardarProducto(e) {
       e.preventDefault();
       const nombre = document.getElementById('prod-nombre').value;
+      const ferianteId = document.getElementById('prod-feriante-id').value;
       const url = await subirFoto(document.getElementById('prod-foto'), 'productos');
-      
-      if (url) {
-        const { error } = await _supabase.from('productos').insert([{ nombre, foto_url: url }]);
-        if (!error) { alert('¡Producto guardado con éxito!'); e.target.reset(); }
+
+      if (url && ferianteId) {
+        const { error } = await _supabase.from('productos').insert([
+          { nombre: nombre, foto_url: url, feriante_id: ferianteId }
+        ]);
+        if (!error) { 
+          alert('¡Producto guardado y asignado correctamente!'); 
+          e.target.reset(); 
+        } else {
+          alert('Error al guardar el producto: ' + error.message);
+        }
       }
     }
 
@@ -182,10 +199,13 @@
       e.preventDefault();
       const titulo = document.getElementById('evento-titulo').value;
       const url = await subirFoto(document.getElementById('evento-foto'), 'flyers-eventos');
-      
+
       if (url) {
         const { error } = await _supabase.from('eventos').insert([{ titulo, imagen_url: url }]);
-        if (!error) { alert('¡Evento guardado con éxito!'); e.target.reset(); }
+        if (!error) { 
+          alert('¡Evento guardado con éxito!'); 
+          e.target.reset(); 
+        }
       }
     }
   </script>
