@@ -1,77 +1,62 @@
-// Manejo de autenticación y sesiones de usuario
+const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', manejarInicioSesion);
-    }
-});
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const errorBox = document.getElementById('error-msg');
+  const btnSubmit = document.getElementById('btn-submit');
 
-async function manejarInicioSesion(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('email-input').value.trim();
-    const password = document.getElementById('password-input').value;
-    const errorMsg = document.getElementById('error-msg');
-    const btnSubmit = document.getElementById('btn-submit');
+  errorBox.classList.add('hidden');
+  btnSubmit.disabled = true;
+  btnSubmit.innerText = 'Verificando...';
 
-    errorMsg.classList.add('hidden');
-    btnSubmit.disabled = true;
-    btnSubmit.innerText = 'Autenticando...';
+  // 1. Iniciar sesión en Supabase Auth
+  const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-    // 1. Iniciar sesión en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
-
-    if (authError) {
-        mostrarError('Credenciales inválidas. Verificá tu correo y contraseña.');
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = 'Iniciar Sesión';
-        return;
-    }
-
-    const userId = authData.user.id;
-
-    // 2. Determinar si el usuario es Administrador de Feria
-    const { data: feria } = await supabase
-        .from('ferias')
-        .select('id, nombre')
-        .eq('usuario_id', userId)
-        .maybeSingle();
-
-    if (feria) {
-        window.location.href = 'admin-feria.html';
-        return;
-    }
-
-    // 3. Determinar si el usuario es Feriante
-    const { data: feriante } = await supabase
-        .from('feriantes')
-        .select('id, nombre_emprendimiento')
-        .eq('usuario_id', userId)
-        .maybeSingle();
-
-    if (feriante) {
-        window.location.href = 'admin-feriante.html';
-        return;
-    }
-
-    // Si no tiene rol asignado
-    mostrarError('El usuario no tiene una feria o emprendimiento asociado.');
+  if (authError) {
+    errorBox.innerText = 'Correo o contraseña incorrectos.';
+    errorBox.classList.remove('hidden');
     btnSubmit.disabled = false;
     btnSubmit.innerText = 'Iniciar Sesión';
-}
+    return;
+  }
 
-function mostrarError(mensaje) {
-    const errorMsg = document.getElementById('error-msg');
-    errorMsg.innerText = mensaje;
-    errorMsg.classList.remove('hidden');
-}
+  const userId = authData.user.id;
 
-// Función auxiliar para cerrar sesión desde los paneles
-async function cerrarSesion() {
-    await supabase.auth.signOut();
-    window.location.href = 'login.html';
+  // 2. Verificar si es Administrador de una Feria
+  const { data: feria } = await _supabase
+    .from('ferias')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (feria) {
+    window.location.href = `admin-feria.html?id=${feria.id}`;
+    return;
+  }
+
+  // 3. Si no es feria, verificar si es un Feriante
+  const { data: feriante } = await _supabase
+    .from('feriantes')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (feriante) {
+    window.location.href = `admin-feriante.html?id=${feriante.id}`;
+    return;
+  }
+
+  // Si el usuario existe en Auth pero no está asignado a ninguna feria ni feriante
+  errorBox.innerText = 'Esta cuenta no tiene asignado un perfil de Feria ni Feriante.';
+  errorBox.classList.remove('hidden');
+  btnSubmit.disabled = false;
+  btnSubmit.innerText = 'Iniciar Sesión';
 }
