@@ -28,10 +28,10 @@
         <i class="fa-solid fa-store text-brand-green"></i> Ferias en Córdoba
       </a>
       <h1 class="text-xl font-bold text-gray-800">Acceso a Gestión</h1>
-      <p class="text-xs text-gray-500 mt-1">Ingresá con tu cuenta de Feria o Feriante</p>
+      <p class="text-xs text-gray-500 mt-1">Ingresá con tu cuenta para acceder a tu panel</p>
     </div>
 
-    <!-- Muestra de errores -->
+    <!-- Mensaje de error -->
     <div id="error-msg" class="hidden bg-red-100 border border-red-400 text-red-700 text-xs p-3 rounded-lg mb-4 text-center"></div>
 
     <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
@@ -55,6 +55,58 @@
     </div>
   </div>
 
-  <script src="js/auth.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('error-msg');
+      const btnSubmit = document.getElementById('btn-submit');
+
+      errorDiv.classList.add('hidden');
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = 'Ingresando...';
+
+      const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorDiv.innerText = 'Error al iniciar sesión: ' + error.message;
+        errorDiv.classList.remove('hidden');
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = 'Iniciar Sesión';
+        return;
+      }
+
+      const userId = data.user.id;
+
+      // 1. Verificar si es SuperAdmin por el rol de metadata o por coincidencia de email
+      const role = data.user.user_metadata?.role;
+      if (role === 'admin' || email.includes('admin')) {
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      // 2. Verificar si pertenece a la tabla 'ferias'
+      const { data: feria } = await _supabase.from('ferias').select('id').eq('user_id', userId).maybeSingle();
+      if (feria) {
+        window.location.href = 'admin-feria.html';
+        return;
+      }
+
+      // 3. Verificar si pertenece a la tabla 'feriantes'
+      const { data: feriante } = await _supabase.from('feriantes').select('id').eq('user_id', userId).maybeSingle();
+      if (feriante) {
+        window.location.href = 'admin-feriante.html';
+        return;
+      }
+
+      // Redirección por defecto en caso de no estar asociado en tablas
+      window.location.href = 'admin.html';
+    }
+  </script>
 </body>
 </html>
