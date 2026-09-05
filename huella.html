@@ -3,27 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huella de Carbono y Sustentabilidad | Ferias en Córdoba</title>
   
-  <title id="meta-title">Huella de Carbono y Sustentabilidad | Ferias en Córdoba</title>
-  <meta id="meta-desc" name="description" content="Calculá tu impacto ambiental positivo consumiendo productos locales en Córdoba (Km 0).">
-
-  <!-- CDNs -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: {
-              green: '#2E7D32',
-              lightgreen: '#E8F5E9',
-              yellow: '#FBC02D',
-              blue: '#0288D1',
-              dark: '#1B5E20'
-            }
+            brand: { green: '#2E7D32', lightgreen: '#E8F5E9', dark: '#1B5E20' }
           }
         }
       }
@@ -32,7 +26,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
-  <!-- HEADER / NAVBAR -->
   <header class="bg-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <a href="index.html" class="flex items-center gap-2">
@@ -41,109 +34,182 @@
       </a>
       <nav class="hidden md:flex gap-6 font-medium">
         <a href="index.html" class="hover:text-brand-green">Inicio</a>
-        <a href="huella.html" class="text-brand-green hover:underline">Huella de Carbono</a>
+        <a href="huella.html" class="text-brand-green underline">Huella de Carbono</a>
       </nav>
-      <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
-        <i class="fa-brands fa-whatsapp text-lg"></i>
-        <span>Soporte</span>
-      </a>
+      <a href="login.html" class="text-xs font-semibold border border-brand-green text-brand-green hover:bg-brand-green hover:text-white px-3 py-1.5 rounded-full transition">Ingresar</a>
     </div>
   </header>
 
-  <!-- HERO HUELLA -->
+  <!-- HERO -->
   <section class="bg-brand-lightgreen py-10 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <i class="fa-solid fa-leaf text-5xl text-brand-green mb-3"></i>
-      <h1 class="text-3xl md:text-5xl font-extrabold text-brand-dark mb-4">
-        Impacto Ambiental y Consumo Responsable
+      <h1 class="text-3xl md:text-5xl font-extrabold text-brand-dark mb-3">
+        Métricas de Impacto Ecológico (Km 0)
       </h1>
-      <p class="text-gray-700 text-base md:text-lg max-w-2xl mx-auto">
-        Comprando en ferias barriales reducís drásticamente la huella de carbono asociada al transporte de larga distancia y packaging industrial.
+      <p class="text-gray-700 text-sm md:text-base max-w-2xl mx-auto">
+        Comprar en ferias de cercanía evita el transporte de larga distancia, los intermediarios y los empaques de plástico innecesarios.
       </p>
     </div>
   </section>
 
-  <!-- CALCULADORA DE IMPACTO -->
-  <main class="max-w-5xl mx-auto px-4 py-10 flex-grow w-full space-y-10">
-    
-    <div class="bg-white p-6 md:p-8 rounded-2xl border shadow-md">
-      <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-        <i class="fa-solid fa-calculator text-brand-green"></i> Calculá tu CO₂ Evitado
-      </h2>
-      <p class="text-sm text-gray-600 mb-6">Ingresá tu compra estimada para conocer cuánto impacto positivo generás en el planeta:</p>
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-10 flex-grow">
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-        <div class="space-y-4">
+    <!-- TOTAL Y CALCULADORA -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <div class="bg-white p-6 rounded-2xl border shadow-sm text-center flex flex-col justify-center">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ahorro Total Global</span>
+        <div id="cnt-huella-total" class="text-4xl font-black text-brand-green my-2">0.00 kg</div>
+        <p class="text-xs text-gray-500">de CO₂ evitado colectivamente en toda la red de ferias.</p>
+      </div>
+
+      <div class="md:col-span-2 bg-white p-6 rounded-2xl border shadow-sm">
+        <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-calculator text-brand-green"></i> Calculadora de Compra Individual
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Rubro del Producto</label>
-            <select id="select-rubro" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none">
-              <option value="0.8">🟡 Alimentos de Feria / Agroecológicos (0.8 kg CO₂/kg evitado)</option>
-              <option value="1.5">🔵 Textil y Moda Circular (1.5 kg CO₂/prenda evitado)</option>
-              <option value="1.2">🔴 Artesanías Local Km 0 (1.2 kg CO₂/unidad evitado)</option>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Rubro</label>
+            <select id="select-rubro" class="w-full p-2.5 border rounded-lg text-sm">
+              <option value="0.8">🟡 Alimentos / Agroecología (0.8 kg CO₂/kg)</option>
+              <option value="1.5">🔵 Textil Circular (1.5 kg CO₂/unidad)</option>
+              <option value="1.2">🔴 Artesanía Km 0 (1.2 kg CO₂/unidad)</option>
             </select>
           </div>
-
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Cantidad comprada (unidades o kg)</label>
-            <input type="number" id="input-cantidad" value="1" min="1" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-green outline-none">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Cantidad</label>
+            <input type="number" id="input-cantidad" value="1" min="1" class="w-full p-2.5 border rounded-lg text-sm">
           </div>
+        </div>
+        <button onclick="calcularIndividual()" class="w-full mt-3 bg-brand-green hover:bg-brand-dark text-white font-bold py-2 rounded-lg text-sm transition">
+          Calcular Mi Impacto Positivo
+        </button>
+        <div id="resultado-indiv" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-900 text-center font-semibold"></div>
+      </div>
 
-          <button onclick="calcularHuella()" class="w-full bg-brand-green hover:bg-brand-dark text-white font-bold py-3 rounded-lg shadow transition">
-            Calcular Ahorro Ecológico
-          </button>
+    </div>
+
+    <!-- GRÁFICAS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">Ahorro de CO₂ por Rubros (kg)</h3>
+        <canvas id="chartRubros" class="max-h-64"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border shadow-sm">
+        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">Ranking de CO₂ Evitado por Feria (kg)</h3>
+        <canvas id="chartFerias" class="max-h-64"></canvas>
+      </div>
+    </div>
+
+    <!-- PREGUNTAS Y RESPUESTAS / IMPORTANCIA -->
+    <div class="bg-white p-6 md:p-8 rounded-2xl border shadow-sm space-y-6">
+      <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 flex items-center gap-2">
+        <i class="fa-solid fa-circle-question text-brand-green"></i> ¿Por qué medir la Huella de Carbono en las Ferias?
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+        <div class="space-y-2">
+          <h3 class="font-bold text-gray-900 text-base">🌱 ¿Qué es el Consumo de Cercanía (Km 0)?</h3>
+          <p>Un producto Km 0 es aquel que se produce y comercializa en un radio local reducido. Al evitar viajes en camiones de logística pesada desde otras provincias o países, el impacto ambiental del transporte disminuye notablemente.</p>
         </div>
 
-        <!-- RESULTADO -->
-        <div class="bg-gray-50 p-6 rounded-xl border text-center flex flex-col justify-center items-center">
-          <span class="text-xs uppercase font-bold text-gray-500 tracking-wider">Ahorro Estimado de CO₂</span>
-          <div id="resultado-co2" class="text-4xl font-black text-brand-green my-2">0.80 kg</div>
-          <p class="text-xs text-gray-600 max-w-xs">Equivale a no recorrer aproximadamente <span id="resultado-km" class="font-bold">4 km</span> en un auto particular a nafta.</p>
+        <div class="space-y-2">
+          <h3 class="font-bold text-gray-900 text-base">📦 Reducción de Plásticos y Empaques</h3>
+          <p>Las cadenas industriales utilizan múltiples capas de packaging plastificado para conservar los productos durante el almacenamiento. En las ferias, la compra directa minimiza el uso de envoltorios desechables.</p>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="font-bold text-gray-900 text-base">📊 ¿Cómo se calcula el ahorro de CO₂?</h3>
+          <p>Utilizamos equivalencias promedio de emisión. Por cada kilo de alimentos o prendas producidas y comercializadas localmente en Córdoba, se evita entre 0.8 kg y 1.5 kg de CO₂ equivalente en fletes y producción industrial.</p>
+        </div>
+
+        <div class="space-y-2">
+          <h3 class="font-bold text-gray-900 text-base">💚 Impacto en la Economía Barrial</h3>
+          <p>Además de la ventaja ecológica, el dinero que invertís en una feria franca o barrial se queda en Córdoba, impulsando a las familias emprendedoras de tu comunidad.</p>
         </div>
       </div>
     </div>
 
-    <!-- MUESTRA DE IMPACTO ACUMULADO GLOBAL -->
-    <div class="bg-white p-6 md:p-8 rounded-2xl border shadow-md text-center">
-      <h3 class="text-xl font-bold text-gray-800 mb-4">Total Acumulado en la Plataforma</h3>
-      <div id="cnt-huella-total" class="text-4xl md:text-5xl font-black text-brand-dark mb-2">0.00 kg</div>
-      <p class="text-sm text-gray-600">de dióxido de carbono ahorrado entre todas las ferias y emprendimientos registrados.</p>
-    </div>
-
   </main>
 
-  <!-- FOOTER -->
   <footer class="bg-gray-800 text-gray-300 py-6">
     <div class="max-w-7xl mx-auto px-4 text-center text-sm">
       <p>© 2026 Ferias en Córdoba - Impulsando la Economía Social y el Consumo Responsable.</p>
     </div>
   </footer>
 
-  <!-- SCRIPT SUPABASE Y LÓGICA -->
   <script>
     const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     document.addEventListener('DOMContentLoaded', async () => {
-      await cargarTotalHuella();
+      await cargarMetricasYGraficos();
     });
 
-    function calcularHuella() {
-      const factor = parseFloat(document.getElementById('select-rubro').value) || 0;
-      const cant = parseFloat(document.getElementById('input-cantidad').value) || 0;
-      const ahorro = factor * cant;
-      const kmEquivalentes = Math.round(ahorro * 5);
-
-      document.getElementById('resultado-co2').innerText = `${ahorro.toFixed(2)} kg`;
-      document.getElementById('resultado-km').innerText = `${kmEquivalentes} km`;
+    function calcularIndividual() {
+      const f = parseFloat(document.getElementById('select-rubro').value) || 0;
+      const c = parseFloat(document.getElementById('input-cantidad').value) || 0;
+      const res = f * c;
+      const box = document.getElementById('resultado-indiv');
+      box.classList.remove('hidden');
+      box.innerText = `¡Genial! Con esta compra estás evitando aproximadamente ${res.toFixed(2)} kg de CO₂ a la atmósfera.`;
     }
 
-    async function cargarTotalHuella() {
-      const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
-      if (data) {
-        const total = data.reduce((acc, c) => acc + (Number(c.co2_ahorrado_kg) || 0), 0);
-        document.getElementById('cnt-huella-total').innerText = `${total.toFixed(2)} kg`;
+    async function cargarMetricasYGraficos() {
+      const { data } = await _supabase.from('equivalencias_carbono').select('*, ferias(nombre)');
+      
+      let totalGlobal = 0;
+      let rubrosMap = { 'Alimentación': 0, 'Textil': 0, 'Artesanías': 0 };
+      let feriasMap = {};
+
+      if (data && data.length > 0) {
+        data.forEach(item => {
+          const val = Number(item.co2_ahorrado_kg) || 0;
+          totalGlobal += val;
+
+          // Agrupar por rubro
+          if (item.rubro && rubrosMap[item.rubro] !== undefined) {
+            rubrosMap[item.rubro] += val;
+          }
+
+          // Agrupar por feria
+          const nombreFeria = item.ferias?.nombre || 'Feria General';
+          feriasMap[nombreFeria] = (feriasMap[nombreFeria] || 0) + val;
+        });
       }
+
+      document.getElementById('cnt-huella-total').innerText = `${totalGlobal.toFixed(2)} kg`;
+
+      // Gráfico de Rubros (Doughnut)
+      new Chart(document.getElementById('chartRubros'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(rubrosMap),
+          datasets: [{
+            data: Object.values(rubrosMap),
+            backgroundColor: ['#FBC02D', '#0288D1', '#8E24AA']
+          }]
+        }
+      });
+
+      // Gráfico de Ferias (Bar)
+      new Chart(document.getElementById('chartFerias'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(feriasMap).length ? Object.keys(feriasMap) : ['Sin datos'],
+          datasets: [{
+            label: 'CO₂ Evitado (kg)',
+            data: Object.values(feriasMap).length ? Object.values(feriasMap) : [0],
+            backgroundColor: '#2E7D32'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
     }
   </script>
 </body>
