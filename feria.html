@@ -43,7 +43,7 @@
         <a href="index.html" class="hover:text-brand-green">Inicio</a>
         <a href="huella.html" class="hover:text-brand-green">Huella de Carbono</a>
       </nav>
-      <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
+      <a id="btn-soporte-header" href="https://wa.me/3511234567" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
         <i class="fa-brands fa-whatsapp text-lg"></i>
         <span>Soporte</span>
       </a>
@@ -122,13 +122,14 @@
           <i class="fa-solid fa-users text-brand-green"></i> Feriantes Miembros
         </h2>
         
-        <!-- Filtro rápido por mantel dentro de la feria -->
+        <!-- Filtro rápido por categoría de producto -->
         <div class="flex gap-2 overflow-x-auto pb-3 mb-4 text-xs font-semibold">
-          <button onclick="filtrarFeriantesMantel('todos')" class="px-3 py-1.5 rounded-full border bg-gray-100">⚪ Todos</button>
-          <button onclick="filtrarFeriantesMantel('amarillo')" class="px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-800">🟡 Alimentación</button>
-          <button onclick="filtrarFeriantesMantel('azul')" class="px-3 py-1.5 rounded-full bg-blue-100 text-blue-800">🔵 Textil</button>
-          <button onclick="filtrarFeriantesMantel('bordo')" class="px-3 py-1.5 rounded-full bg-purple-100 text-purple-800">🔴 Artesanías</button>
-          <button onclick="filtrarFeriantesMantel('verde')" class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">🟢 Impacto</button>
+          <button onclick="filtrarFeriantesCategoria('todos')" class="px-3 py-1.5 rounded-full border bg-gray-100">⚪ Todos</button>
+          <button onclick="filtrarFeriantesCategoria('alimentacion')" class="px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-800">🟡 Alimentación</button>
+          <button onclick="filtrarFeriantesCategoria('textil')" class="px-3 py-1.5 rounded-full bg-blue-100 text-blue-800">🔵 Textil y Moda</button>
+          <button onclick="filtrarFeriantesCategoria('artesanias')" class="px-3 py-1.5 rounded-full bg-red-100 text-red-800">🔴 Artesanías</button>
+          <button onclick="filtrarFeriantesCategoria('impacto')" class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">🟢 Impacto / Natura</button>
+          <button onclick="filtrarFeriantesCategoria('servicios')" class="px-3 py-1.5 rounded-full bg-gray-200 text-gray-800">⚪ Otros / Servicios</button>
         </div>
 
         <div id="grid-feriantes-miembros" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -210,6 +211,7 @@
       const { data: feria } = await _supabase.from('ferias').select('*').eq('id', feriaId).single();
       if (!feria) return;
 
+      document.getElementById('meta-title').innerText = `${feria.nombre} | Ferias en Córdoba`;
       document.getElementById('feria-nombre').innerText = feria.nombre;
       document.getElementById('feria-direccion').innerHTML = `<i class="fa-solid fa-location-dot text-red-500"></i> ${feria.direccion || 'Córdoba Capital'}`;
       document.getElementById('feria-descripcion').innerText = feria.descripcion || 'Sin descripción disponible.';
@@ -219,7 +221,7 @@
       
       if (feria.link_mapa) document.getElementById('btn-como-llegar').href = feria.link_mapa;
       if (feria.whatsapp) document.getElementById('btn-wsp-feria').href = `https://wa.me/${feria.whatsapp}`;
-      if (feria.instagram_url) document.getElementById('btn-ig-feria').href = feria.instagram_url;
+      if (feria.instagram_url) document.getElementById('btn-ig-feria').href = feria.instagram_url.startsWith('http') ? feria.instagram_url : `https://instagram.com/${feria.instagram_url.replace('@', '')}`;
 
       if (feria.modo_lluvia) {
         document.getElementById('banner-lluvia-feria').classList.remove('hidden');
@@ -234,12 +236,16 @@
       if (data && data.length > 0) {
         data.forEach(item => {
           const s = item.skills;
+          if (!s) return;
           const badge = document.createElement('span');
-          badge.className = 'text-xs px-2.5 py-1 rounded-full font-semibold text-white flex items-center gap-1';
+          badge.className = 'text-xs px-2.5 py-1 rounded-full font-semibold text-white flex items-center gap-1 shadow-sm';
           badge.style.backgroundColor = s.color_hex || '#2E7D32';
-          badge.innerHTML = `<i class="${s.icono_class}"></i> ${s.nombre}`;
+          badge.innerHTML = `<i class="fa-solid ${s.icono || 'fa-certificate'}"></i> ${s.nombre}`;
+          badge.title = s.descripcion || s.nombre;
           container.appendChild(badge);
         });
+      } else {
+        container.innerHTML = '<span class="text-xs text-gray-400 italic">Esta feria aún no registra insignias declaradas.</span>';
       }
     }
 
@@ -255,17 +261,19 @@
       container.innerHTML = '';
 
       if (!avisos || avisos.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">No hay novedades o flyers publicados vigentes.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No hay novedades o flyers publicados vigentes.</p>';
         return;
       }
 
       avisos.forEach(a => {
         const item = document.createElement('div');
-        item.className = 'border rounded-xl p-3 bg-gray-50';
+        item.className = 'border rounded-xl p-3 bg-gray-50 flex flex-col justify-between';
         item.innerHTML = `
-          <img src="${a.imagen_url || 'https://via.placeholder.com/300x150'}" class="w-full h-32 object-cover rounded-lg mb-2">
-          <h4 class="font-bold text-sm text-gray-900">${a.titulo}</h4>
-          <p class="text-xs text-gray-600 line-clamp-2 mt-1">${a.descripcion || ''}</p>
+          <div>
+            <img src="${a.imagen_url || 'https://via.placeholder.com/300x150'}" class="w-full h-32 object-cover rounded-lg mb-2">
+            <h4 class="font-bold text-sm text-gray-900">${a.titulo}</h4>
+            <p class="text-xs text-gray-600 line-clamp-2 mt-1">${a.descripcion || ''}</p>
+          </div>
         `;
         container.appendChild(item);
       });
@@ -282,18 +290,18 @@
       container.innerHTML = '';
 
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 col-span-2">No se encontraron feriantes en esta categoría.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron feriantes en esta categoría.</p>';
         return;
       }
 
       lista.forEach(f => {
         const card = document.createElement('div');
-        card.className = 'border rounded-xl p-3 flex items-center gap-3 bg-white shadow-sm';
+        card.className = 'border rounded-xl p-3 flex items-center gap-3 bg-white shadow-sm hover:border-brand-green transition';
         card.innerHTML = `
-          <img src="${f.logo_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border">
+          <img src="${f.logo_url || f.perfil_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border">
           <div class="flex-grow min-w-0">
-            <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre_emprendimiento}</h4>
-            <p class="text-xs text-gray-500">${f.nombre_titular || 'Feriante'}</p>
+            <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre || f.nombre_emprendimiento || 'Emprendimiento'}</h4>
+            <p class="text-xs text-gray-500 capitalize">${f.categoria || 'Feriante'}</p>
             <a href="feriante.html?id=${f.id}" class="text-xs text-brand-green font-semibold hover:underline mt-1 inline-block">Ver perfil</a>
           </div>
         `;
@@ -301,14 +309,14 @@
       });
     }
 
-    function filtrarFeriantesMantel(color) {
-      if (color === 'todos') renderizarFeriantes(feriantesCache);
-      else renderizarFeriantes(feriantesCache.filter(f => f.color_mantel === color));
+    function filtrarFeriantesCategoria(cat) {
+      if (cat === 'todos') renderizarFeriantes(feriantesCache);
+      else renderizarFeriantes(feriantesCache.filter(f => f.categoria === cat));
     }
 
     async function cargarHuellaFeria() {
       const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg').eq('entidad_id', feriaId);
-      if (data) {
+      if (data && data.length > 0) {
         const total = data.reduce((acc, c) => acc + (Number(c.co2_ahorrado_kg) || 0), 0);
         document.getElementById('cnt-huella-feria').innerText = `${total.toFixed(2)} kg`;
       }
@@ -340,13 +348,17 @@
       const autor = document.getElementById('input-autor').value;
       const mensaje = document.getElementById('input-mensaje').value;
 
-      await _supabase.from('comentarios').insert([
+      const { error } = await _supabase.from('comentarios').insert([
         { tipo_destino: 'feria', destino_id: feriaId, autor_nombre: autor, mensaje: mensaje }
       ]);
 
-      document.getElementById('input-autor').value = '';
-      document.getElementById('input-mensaje').value = '';
-      await cargarComentarios();
+      if (!error) {
+        document.getElementById('input-autor').value = '';
+        document.getElementById('input-mensaje').value = '';
+        await cargarComentarios();
+      } else {
+        alert('Error al publicar comentario: ' + error.message);
+      }
     }
   </script>
 </body>
