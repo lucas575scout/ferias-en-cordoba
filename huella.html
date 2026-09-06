@@ -61,7 +61,7 @@
       <div class="bg-white p-6 rounded-2xl border shadow-sm text-center flex flex-col justify-center">
         <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ahorro Total Global</span>
         <div id="cnt-huella-total" class="text-4xl font-black text-brand-green my-2">0.00 kg</div>
-        <p class="text-xs text-gray-500">de CO₂ evitado colectivamente en toda la red de ferias.</p>
+        <p class="text-xs text-gray-500">de CO₂ evitado por los productos registrados en la red.</p>
       </div>
 
       <div class="md:col-span-2 bg-white p-6 rounded-2xl border shadow-sm">
@@ -73,8 +73,9 @@
             <label class="block text-xs font-semibold text-gray-600 mb-1">Rubro del Producto</label>
             <select id="select-rubro" class="w-full p-2.5 border rounded-lg text-sm bg-white">
               <option value="0.8">🟡 Alimentos / Agroecología (0.8 kg CO₂/kg)</option>
-              <option value="1.5">🔵 Textil Circular (1.5 kg CO₂/unidad)</option>
-              <option value="1.2">🔴 Artesanía Km 0 (1.2 kg CO₂/unidad)</option>
+              <option value="1.5">🔵 Textil Circular / Moda (1.5 kg CO₂/unidad)</option>
+              <option value="1.2">🔴 Artesanías / Decoración (1.2 kg CO₂/unidad)</option>
+              <option value="0.9">🟢 Cosmética Natural / Eco (0.9 kg CO₂/unidad)</option>
             </select>
           </div>
           <div>
@@ -93,7 +94,7 @@
     <!-- GRÁFICAS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div class="bg-white p-6 rounded-2xl border shadow-sm">
-        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">Ahorro Estimado por Categorías (kg)</h3>
+        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">Ahorro Estimado por Categorías (kg CO₂)</h3>
         <div class="relative h-64 flex justify-center items-center">
           <canvas id="chartRubros"></canvas>
         </div>
@@ -106,14 +107,13 @@
       </div>
     </div>
 
-    <!-- SECCIÓN FAQS / EXPLICACIÓN EDITABLE DESDE SUPABASE -->
+    <!-- SECCIÓN FAQS / EXPLICACIÓN -->
     <div class="bg-white p-6 md:p-8 rounded-2xl border shadow-sm space-y-6">
       <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 flex items-center gap-2">
         <i class="fa-solid fa-circle-question text-brand-green"></i> ¿Por qué medir la Huella de Carbono en las Ferias?
       </h2>
 
       <div id="contenedor-faq" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
-        <!-- Textos por defecto si no están cargados en Supabase -->
         <div class="space-y-2">
           <h3 class="font-bold text-gray-900 text-base">🌱 ¿Qué es el Consumo de Cercanía (Km 0)?</h3>
           <p>Un producto Km 0 es aquel que se produce y comercializa en un radio local reducido. Al evitar viajes en camiones de logística pesada desde otras provincias o países, el impacto ambiental del transporte disminuye notablemente.</p>
@@ -124,7 +124,7 @@
         </div>
         <div class="space-y-2">
           <h3 class="font-bold text-gray-900 text-base">📊 ¿Cómo se calcula el ahorro de CO₂?</h3>
-          <p>Utilizamos equivalencias promedio de emisión. Por cada kilo de alimentos o prendas producidas y comercializadas localmente en Córdoba, se evita entre 0.8 kg y 1.5 kg de CO₂ equivalente en fletes.</p>
+          <p>Sumamos el CO₂ ahorrado de cada producto subido a la plataforma por los feriantes. Por cada kilo o unidad comercializada localmente en Córdoba, se evita entre 0.8 kg y 1.5 kg de CO₂ equivalente.</p>
         </div>
         <div class="space-y-2">
           <h3 class="font-bold text-gray-900 text-base">💚 Impacto en la Economía Barrial</h3>
@@ -161,36 +161,64 @@
     }
 
     async function cargarMetricasYGraficos() {
-      const { data: equivalencias } = await _supabase.from('equivalencias_carbono').select('*');
-      const { data: ferias } = await _supabase.from('ferias').select('id, nombre');
+      // 1. Consultar productos de la tabla 'productos_feriantes'
+      const { data: productos } = await _supabase
+        .from('productos_feriantes')
+        .select('co2_ahorrado_unitario, categoria, feriante_id');
+
+      // 2. Consultar feriantes para mapear a qué feria pertenecen
+      const { data: feriantes } = await _supabase
+        .from('feriantes')
+        .select('id, feria_id');
+
+      // 3. Consultar ferias para los nombres
+      const { data: ferias } = await _supabase
+        .from('ferias')
+        .select('id, nombre');
 
       const feriasMapNames = {};
       if (ferias) {
         ferias.forEach(f => feriasMapNames[f.id] = f.nombre);
       }
 
+      const feriantesFeriaMap = {};
+      if (feriantes) {
+        feriantes.forEach(f => feriantesFeriaMap[f.id] = f.feria_id);
+      }
+
       let totalGlobal = 0;
-      let rubrosMap = { 'Alimentación': 0, 'Textil': 0, 'Artesanías': 0, 'Otros': 0 };
+      let rubrosMap = { 'Alimentación': 0, 'Textil / Moda': 0, 'Artesanías': 0, 'Otros': 0 };
       let feriasMap = {};
 
-      if (equivalencias && equivalencias.length > 0) {
-        equivalencias.forEach(item => {
-          const val = Number(item.co2_ahorrado_kg) || 0;
+      if (productos && productos.length > 0) {
+        productos.forEach(p => {
+          const val = Number(p.co2_ahorrado_unitario) || 0;
           totalGlobal += val;
 
-          // Mapeo por Tipo de Entidad (Feria vs Otros)
-          if (item.entidad_tipo === 'feria' || item.entidad_tipo === 'ferias') {
-            const nombreFeria = feriasMapNames[item.entidad_id] || `Feria #${item.entidad_id}`;
-            feriasMap[nombreFeria] = (feriasMap[nombreFeria] || 0) + val;
+          // Agrupar por categoría
+          const cat = (p.categoria || '').toLowerCase();
+          if (cat.includes('aliment') || cat.includes('gastronom')) {
+            rubrosMap['Alimentación'] += val;
+          } else if (cat.includes('textil') || cat.includes('moda') || cat.includes('ropa')) {
+            rubrosMap['Textil / Moda'] += val;
+          } else if (cat.includes('artesan') || cat.includes('deco')) {
+            rubrosMap['Artesanías'] += val;
           } else {
             rubrosMap['Otros'] += val;
+          }
+
+          // Obtener ID de la feria a través del feriante
+          const feriaId = feriantesFeriaMap[p.feriante_id];
+          if (feriaId) {
+            const nombreFeria = feriasMapNames[feriaId] || `Feria #${feriaId}`;
+            feriasMap[nombreFeria] = (feriasMap[nombreFeria] || 0) + val;
           }
         });
       }
 
       document.getElementById('cnt-huella-total').innerText = `${totalGlobal.toFixed(2)} kg`;
 
-      // Gráfico de Dona (Rubros/General)
+      // Gráfico de Dona (Rubros)
       new Chart(document.getElementById('chartRubros'), {
         type: 'doughnut',
         data: {
@@ -204,7 +232,7 @@
       });
 
       // Gráfico de Barras (Ferias)
-      const etiquetasFerias = Object.keys(feriasMap).length ? Object.keys(feriasMap) : ['Sin registros de ferias'];
+      const etiquetasFerias = Object.keys(feriasMap).length ? Object.keys(feriasMap) : ['Sin productos asignados'];
       const valoresFerias = Object.values(feriasMap).length ? Object.values(feriasMap) : [0];
 
       new Chart(document.getElementById('chartFerias'), {
