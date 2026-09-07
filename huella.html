@@ -128,7 +128,7 @@
         </div>
         <div class="space-y-2">
           <h3 class="font-bold text-gray-900 text-base">💚 Impacto en la Economía Barrial</h3>
-          <p>Además de la ventaja ecológica, el dinero que invertís en una feria franca o barrial se queda en Córdoba, impulsando a las familias emprendedoras de tu comunidad.</p>
+          <p>Alémás de la ventaja ecológica, el dinero que invertís en una feria franca o barrial se queda en Córdoba, impulsando a las familias emprendedoras de tu comunidad.</p>
         </div>
       </div>
     </div>
@@ -161,7 +161,7 @@
     }
 
     async function cargarMetricasYGraficos() {
-      // 1. Consultar productos de la tabla correcta 'productos_feriante' (en singular)
+      // 1. Consultar productos de la tabla correcta 'productos_feriante' (en singular) y con la columna exacta
       const { data: productos, error } = await _supabase
         .from('productos_feriante')
         .select('co2_ahorrado_unitario, categoria, feriante_id');
@@ -200,13 +200,13 @@
           const val = Number(p.co2_ahorrado_unitario) || 0;
           totalGlobal += val;
 
-          // Agrupar por categoría
+          // Agrupar por categoría de forma flexible
           const cat = (p.categoria || '').toLowerCase();
-          if (cat.includes('aliment') || cat.includes('gastronom')) {
+          if (cat.includes('aliment') || cat.includes('gastronom') || cat.includes('agro')) {
             rubrosMap['Alimentación'] += val;
           } else if (cat.includes('textil') || cat.includes('moda') || cat.includes('ropa')) {
             rubrosMap['Textil / Moda'] += val;
-          } else if (cat.includes('artesan') || cat.includes('deco')) {
+          } else if (cat.includes('artesan') || cat.includes('deco') || cat.includes('decoracion')) {
             rubrosMap['Artesanías'] += val;
           } else {
             rubrosMap['Otros'] += val;
@@ -217,6 +217,8 @@
           if (feriaId) {
             const nombreFeria = feriasMapNames[feriaId] || `Feria #${feriaId}`;
             feriasMap[nombreFeria] = (feriasMap[nombreFeria] || 0) + val;
+          } else {
+            feriasMap['Feria General / Sin Asignar'] = (feriasMap['Feria General / Sin Asignar'] || 0) + val;
           }
         });
       }
