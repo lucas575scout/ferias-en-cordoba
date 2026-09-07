@@ -171,10 +171,22 @@
     }
 
     async function cargarHuellaGlobal() {
-      const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
-      if (data) {
-        const total = data.reduce((acc, curr) => acc + (Number(curr.co2_ahorrado_kg) || 0), 0);
-        document.getElementById('cnt-huella-global').innerText = `${total.toFixed(2)} kg`;
+      try {
+        const { data, error } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
+        
+        if (error) {
+          console.error('Error al cargar la huella de carbono:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const total = data.reduce((acc, curr) => acc + (Number(curr.co2_ahorrado_kg) || 0), 0);
+          document.getElementById('cnt-huella-global').innerText = `${total.toFixed(2)} kg`;
+        } else {
+          document.getElementById('cnt-huella-global').innerText = '0.00 kg';
+        }
+      } catch (err) {
+        console.error('Error de red o conexión con Supabase:', err);
       }
     }
 
