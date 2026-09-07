@@ -52,17 +52,17 @@
     </div>
   </header>
 
-  <!-- BANNER GENERAL MODO LLUVIA (Si hay alguna feria con lluvia activada) -->
+  <!-- BANNER MODO LLUVIA GENERAL -->
   <div id="banner-lluvia-general" class="hidden bg-blue-600 text-white text-center py-2.5 px-4 font-semibold flex justify-center items-center gap-2 shadow-inner">
     <i class="fa-solid fa-cloud-showers-heavy text-xl animate-bounce"></i>
-    <span>¡Atención! Algunas ferias activaron el <strong>Modo Lluvia</strong> por contingencias climáticas. ¡Revisá el estado en cada tarjeta antes de asistir!</span>
+    <span>¡Atención! Algunas ferias activaron el <strong>Modo Lluvia</strong> hoy. ¡Revisá el estado en cada tarjeta antes de ir!</span>
   </div>
 
   <!-- HERO SECTION -->
   <section class="bg-gradient-to-r from-brand-dark to-brand-green text-white py-12 px-4 shadow-lg">
     <div class="max-w-4xl mx-auto text-center space-y-4">
       <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">Descubrí la Economía Social en Córdoba</h1>
-      <p class="text-brand-lightgreen text-base md:text-lg">Apoyá al comercio local, encontrá feriantes de cercanía y reducí tu huella ecológicam con consumo responsable.</p>
+      <p class="text-brand-lightgreen text-base md:text-lg">Apoyá al comercio local, encontrá feriantes de cercanía y reducí tu huella ecológica con consumo responsable.</p>
     </div>
   </section>
 
@@ -92,17 +92,15 @@
       </div>
     </section>
 
-    <!-- SECCIÓN DE BÚSQUEDA GENERAL DE PRODUCTOS Y FERIANTES -->
+    <!-- BÚSQUEDA GENERAL DE PRODUCTOS Y FERIANTES -->
     <section class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
       <h2 class="text-xl font-bold text-gray-800">¿Qué estás buscando hoy?</h2>
       
-      <!-- INPUT DE BÚSQUEDA GENERAL -->
       <div class="relative">
-        <input type="text" id="input-busqueda-general" onkeyup="ejecutarBusquedaGeneral()" placeholder="Buscar producto (ej: alfajor, miel), feria o emprendimiento..." class="w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green shadow-sm">
+        <input type="text" id="input-busqueda-general" onkeyup="ejecutarBusquedaGeneral()" placeholder="Buscar producto, feria o emprendimiento..." class="w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green shadow-sm">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
       </div>
 
-      <!-- FILTRO RÁPIDO POR RUBRO / MANTEL -->
       <div class="flex gap-2 overflow-x-auto pb-2 text-xs font-semibold">
         <span class="text-gray-500 self-center mr-1">Filtrar por rubro:</span>
         <button onclick="seleccionarMantelGeneral('todos')" class="px-3 py-1.5 rounded-full border bg-gray-100 whitespace-nowrap">⚪ Todos</button>
@@ -112,16 +110,14 @@
         <button onclick="seleccionarMantelGeneral('verde')" class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap">🟢 Impacto / Natura</button>
       </div>
 
-      <!-- RESULTADOS DE BÚSQUEDA DE PRODUCTOS / EMPRENDIMIENTOS -->
       <div id="contenedor-resultados-busqueda" class="hidden space-y-3 pt-2 border-t">
         <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Resultados de productos y emprendedores:</h3>
         <div id="grid-resultados-busqueda" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <!-- Carga dinámica -->
         </div>
       </div>
     </section>
 
-    <!-- LISTADO DE FERIAS DE LA CIUDAD -->
+    <!-- LISTADO DE FERIAS -->
     <section class="space-y-4">
       <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
         <i class="fa-solid fa-store text-brand-green"></i> Ferias de la Ciudad
@@ -141,7 +137,7 @@
     </div>
   </footer>
 
-  <!-- SCRIPT CONEXIÓN SUPABASE Y LÓGICA GENERAL -->
+  <!-- SCRIPT -->
   <script>
     const SUPABASE_URL = 'https://mtnvffcgbydtavfihxqt.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bnZmZmNnYnlkdGF2ZmloeHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzQwMjEsImV4cCI6MjEwNDE1MDAyMX0.2A-x9_Dm_m5CUZxjMuAdvQrA1cWdFLPQAjBvWwxc9NY';
@@ -161,7 +157,6 @@
     });
 
     function initMapa() {
-      // Coordenadas centro Córdoba Capital
       mapa = L.map('mapa-ferias').setView([-31.4167, -64.1833], 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
@@ -186,7 +181,6 @@
         const esLluvia = f.modo_lluvia === true || f.modo_lluvia === 'true' || f.modo_lluvia === 'activo';
         if (esLluvia) hayLluviaGeneral = true;
 
-        // Marcador en Mapa si tiene coords
         if (f.latitud && f.longitud) {
           const marker = L.marker([f.latitud, f.longitud]).addTo(mapa);
           marker.bindPopup(`
@@ -198,7 +192,6 @@
           `);
         }
 
-        // Card HTML de la feria
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md transition flex flex-col justify-between';
         
@@ -229,7 +222,7 @@
               Ingresar a la Feria
             </a>
             ${f.whatsapp ? `
-              <a href="https://wa.me/${f.whatsapp}" target="_blank" class="text-green-600 hover:text-green-800 text-lg">
+              <a href="https://wa.me/${f.whatsapp.replace(/\D/g, '')}" target="_blank" class="text-green-600 hover:text-green-800 text-lg">
                 <i class="fa-brands fa-whatsapp"></i>
               </a>
             ` : ''}
@@ -321,7 +314,6 @@
 
       contenedorResultados.classList.remove('hidden');
 
-      // 1. Filtrar productos por término de búsqueda (ej: "alfajor")
       const productosEncontrados = productosCache.filter(p => {
         const nom = normalizarTexto(p.nombre);
         const desc = normalizarTexto(p.descripcion);
@@ -331,7 +323,6 @@
 
       const idsFeriantesDeProductos = productosEncontrados.map(p => p.feriante_id);
 
-      // 2. Filtrar feriantes por nombre, rubro O si tienen productos encontrados
       const feriantesFiltrados = feriantesCache.filter(f => {
         const matchMantel = mantelGeneralSeleccionado === 'todos' || normalizarMantel(f) === mantelGeneralSeleccionado;
 
@@ -354,7 +345,6 @@
       }
 
       feriantesFiltrados.forEach(f => {
-        // Encontrar productos de este feriante que matchearon con la búsqueda
         const prodsDelFeriante = productosEncontrados.filter(p => p.feriante_id === f.id);
         const nomProdDestacado = prodsDelFeriante.length > 0 ? prodsDelFeriante[0].nombre : null;
 
