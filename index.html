@@ -53,7 +53,7 @@
       </nav>
       <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
         <i class="fa-brands fa-whatsapp text-lg"></i>
-        <span id="encabezado-txt-btn">Sumá tu Feria</span>
+        <span id="txt-btn-header">Sumá tu Feria</span>
       </a>
     </div>
   </header>
@@ -118,7 +118,7 @@
         <input type="text" id="input-busqueda" onkeyup="aplicarBusquedaInteligente()" placeholder="Buscar producto (ej: alfajor), emprendimiento, feria o estado (ej: activo)..." class="w-full pl-10 pr-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
       </div>
-      <p id="etiqueta-de-manteles-txt" class="text-xs font-semibold text-gray-600 mb-2">Filtrar por rubro / color de mantel:</p>
+      <p id="txt-manteles-label" class="text-xs font-semibold text-gray-600 mb-2">Filtrar por rubro / color de mantel:</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
         <button onclick="filtrarMantel('todos')" class="btn-mantel p-2 rounded-lg border font-medium bg-gray-100 hover:bg-gray-200" data-mantel="todos">⚪ Todos</button>
         <button onclick="filtrarMantel('amarillo')" class="btn-mantel p-2 rounded-lg border font-semibold text-yellow-900 bg-yellow-200 hover:bg-yellow-300" data-mantel="amarillo">🟡 Alimentación</button>
@@ -131,7 +131,7 @@
 
   <!-- DIRECTORIO PRINCIPAL -->
   <section class="max-w-7xl mx-auto px-4 py-6 flex-grow">
-    <h2 id="Título del directorio txt" class="text-2xl font-bold text-gray-800 mb-4">Ferias de la Ciudad</h2>
+    <h2 id="txt-directorio-titulo" class="text-2xl font-bold text-gray-800 mb-4">Resultados</h2>
     <div id="grid-ferias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div class="text-gray-400">Cargando directorio...</div>
     </div>
@@ -158,31 +158,10 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       initMap();
-      await cargarTextosDinamicos();
       await cargarHuellaGlobal();
       await cargarCarrusel();
       await cargarDatosBase();
     });
-
-    async function cargarTextosDinamicos() {
-      try {
-        const { data, error } = await _supabase.from('aplicación de textos').select('clave texto, valor texto');
-        if (error) {
-          console.error('Error al cargar textos:', error);
-          return;
-        }
-        if (data) {
-          data.forEach(row => {
-            const el = document.getElementById(row.clave texto || row.clave_texto);
-            if (el && row.valor texto) {
-              el.innerText = row.valor texto;
-            }
-          });
-        }
-      } catch (err) {
-        console.error('Excepción al cargar textos dinámicos:', err);
-      }
-    }
 
     function initMap() {
       map = L.map('map').setView([-31.4167, -64.1833], 12);
@@ -192,22 +171,10 @@
     }
 
     async function cargarHuellaGlobal() {
-      try {
-        const { data, error } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
-        
-        if (error) {
-          console.error('Error al cargar la huella de carbono:', error);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          const total = data.reduce((acc, curr) => acc + (Number(curr.co2_ahorrado_kg) || 0), 0);
-          document.getElementById('cnt-huella-global').innerText = `${total.toFixed(2)} kg`;
-        } else {
-          document.getElementById('cnt-huella-global').innerText = '0.00 kg';
-        }
-      } catch (err) {
-        console.error('Error de red o conexión con Supabase:', err);
+      const { data } = await _supabase.from('equivalencias_carbono').select('co2_ahorrado_kg');
+      if (data) {
+        const total = data.reduce((acc, curr) => acc + (Number(curr.co2_ahorrado_kg) || 0), 0);
+        document.getElementById('cnt-huella-global').innerText = `${total.toFixed(2)} kg`;
       }
     }
 
@@ -269,15 +236,17 @@
       return 'blanco';
     }
 
+    // BÚSQUEDA Y FILTRADO INTELIGENTE UNIFICADO
     function aplicarBusquedaInteligente() {
       const grid = document.getElementById('grid-ferias');
-      const tituloDirectorio = document.getElementById('Título del directorio txt');
+      const tituloDirectorio = document.getElementById('txt-directorio-titulo');
       const query = document.getElementById('input-busqueda').value.toLowerCase().trim();
 
       grid.innerHTML = '';
       markers.forEach(m => map.removeLayer(m));
       markers = [];
 
+      // 1. Filtrar Ferias
       const feriasFiltradas = feriasCache.filter(f => {
         if (filtroMantelActual !== 'todos') return false;
         if (!query) return true;
@@ -287,6 +256,7 @@
         return textoCompleto.includes(query);
       });
 
+      // 2. Filtrar Feriantes
       const feriantesFiltrados = feriantesCache.filter(f => {
         const coincideMantel = (filtroMantelActual === 'todos') || (normalizarMantel(f) === filtroMantelActual);
         if (!coincideMantel) return false;
@@ -304,6 +274,7 @@
         return textoFeriante.includes(query) || tieneProductoCoincidente;
       });
 
+      // 3. Filtrar Productos Individuales
       const productosFiltrados = productosCache.filter(p => {
         const coincideMantel = (filtroMantelActual === 'todos') || (normalizarMantel(p) === filtroMantelActual);
         if (!coincideMantel) return false;
@@ -328,6 +299,7 @@
         return;
       }
 
+      // RENDERIZAR RESULTADOS
       if (feriasFiltradas.length > 0) {
         if (query) {
           const h = document.createElement('h3');
