@@ -90,12 +90,13 @@
           </div>
         </div>
 
-        <!-- INSIGNIAS DINÁMICAS -->
+        <!-- MENÚ DESPLEGABLE DE SKILLS / INSIGNIAS -->
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-2">Insignias / Atributos de tu Emprendimiento:</label>
-          <div id="contenedor-skills" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-3 bg-gray-50 border rounded-xl max-h-60 overflow-y-auto">
-            <p class="text-xs text-gray-400 col-span-full">Cargando insignias...</p>
-          </div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Seleccionar Habilidades / Insignias:</label>
+          <select id="select-skills" class="w-full p-2.5 border rounded-lg text-sm bg-white" onchange="agregarSkill(this.value)">
+            <option value="">-- Cargar insignias desde la base de datos... --</option>
+          </select>
+          <div id="skills-seleccionadas" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
 
         <!-- IMÁGENES -->
@@ -160,13 +161,28 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let ferianteActual = null;
+    let skillsElegidas = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
+      await cargarOpcionesSkills();
       await inicializarPanel();
     });
 
+    async function cargarOpcionesSkills() {
+      const { data: lista } = await _supabase.from('habilidades').select('*').order('nombre', { ascending: true });
+      const select = document.getElementById('select-skills');
+      if (lista && select) {
+        select.innerHTML = '<option value="">-- Selecciona una habilidad --</option>';
+        lista.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.nombre;
+          opt.textContent = item.nombre;
+          select.appendChild(opt);
+        });
+      }
+    }
+
     async function inicializarPanel() {
-      // 1. Verificar usuario logueado
       const { data: { user } } = await _supabase.auth.getUser();
       if (user) {
         const { data: feriante } = await _supabase.from('feriantes').select('*').eq('user_id', user.id).single();
@@ -175,7 +191,6 @@
           cargarDatosEnFormulario(feriante);
         }
       }
-      await cargarSelectorSkills();
     }
 
     function cargarDatosEnFormulario(f) {
@@ -189,29 +204,38 @@
         const rad = document.querySelector(`input[name="categoria"][value="${f.categoria}"]`);
         if (rad) rad.checked = true;
       }
+
+      // Cargar columna skills (Array o String JSON)
+      let skillsArray = f.skills || [];
+      if (typeof skillsArray === 'string') {
+        try { skillsArray = JSON.parse(skillsArray); } catch (e) { skillsArray = skillsArray.split(',').map(s => s.trim()); }
+      }
+      skillsElegidas = Array.isArray(skillsArray) ? skillsArray : [];
+      renderizarEtiquetas();
     }
 
-    // CARGAR INSIGNIAS DESDE LA TABLA 'habilidades'
-    async function cargarSelectorSkills(skillsGuardadas = []) {
-      const { data: listSkills, error } = await _supabase.from('habilidades').select('*').order('id', { ascending: true });
-      const container = document.getElementById('contenedor-skills');
-      container.innerHTML = '';
+    function agregarSkill(nombre) {
+      if (!nombre || skillsElegidas.includes(nombre)) return;
+      skillsElegidas.push(nombre);
+      renderizarEtiquetas();
+      document.getElementById('select-skills').value = '';
+    }
 
-      if (listSkills && listSkills.length > 0) {
-        listSkills.forEach(s => {
-          const isChecked = skillsGuardadas.includes(s.id) || skillsGuardadas.includes(s.nombre) ? 'checked' : '';
-          const label = document.createElement('label');
-          label.className = 'flex items-center gap-2 border p-2 rounded-lg cursor-pointer bg-white hover:bg-green-50 transition text-xs font-medium';
-          label.innerHTML = `
-            <input type="checkbox" name="skills" value="${s.id}" class="rounded text-brand-green" ${isChecked}>
-            <i class="fa-solid ${s.icono || 'fa-award'} text-brand-green text-sm"></i>
-            <span class="truncate" title="${s.nombre}">${s.nombre}</span>
-          `;
-          container.appendChild(label);
-        });
-      } else {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">No hay insignias disponibles actualmente.</p>';
-      }
+    function quitarSkill(nombre) {
+      skillsElegidas = skillsElegidas.filter(s => s !== nombre);
+      renderizarEtiquetas();
+    }
+
+    function renderizarEtiquetas() {
+      const cont = document.getElementById('skills-seleccionadas');
+      if (!cont) return;
+      cont.innerHTML = skillsElegidas.map(s => `
+        <span class="inline-flex items-center gap-1.5 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full border border-green-200">
+          <i class="fa-solid fa-award text-green-600"></i>
+          ${s}
+          <button type="button" onclick="quitarSkill('${s}')" class="text-green-600 hover:text-red-600 font-bold ml-1 text-sm">&times;</button>
+        </span>
+      `).join('');
     }
 
     async function subirImagen(inputElement, bucketName) {
@@ -252,6 +276,7 @@
         instagram,
         categoria,
         activo,
+        skills: skillsElegidas,
         user_id: user ? user.id : null
       };
 
@@ -268,18 +293,6 @@
       }
 
       if (!result.error) {
-        // Guardar habilidades/skills asociadas
-        const ferianteId = ferianteActual ? ferianteActual.id : result.data?.id;
-        if (ferianteId) {
-          const checkboxes = document.querySelectorAll('input[name="skills"]:checked');
-          const skillIds = Array.from(checkboxes).map(cb => cb.value);
-
-          await _supabase.from('feriante_skills').delete().eq('feriante_id', ferianteId);
-          if (skillIds.length > 0) {
-            const filasSkills = skillIds.map(sId => ({ feriante_id: ferianteId, habilidad_id: sId }));
-            await _supabase.from('feriante_skills').insert(filasSkills);
-          }
-        }
         alert('¡Perfil actualizado correctamente!');
       } else {
         alert('Error al guardar el perfil: ' + result.error.message);
