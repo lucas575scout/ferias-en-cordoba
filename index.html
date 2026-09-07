@@ -256,7 +256,7 @@
         return textoCompleto.includes(query);
       });
 
-      // 2. Filtrar Feriantes (También chequea si alguno de sus productos coincide con la búsqueda ej: "alfajor")
+      // 2. Filtrar Feriantes
       const feriantesFiltrados = feriantesCache.filter(f => {
         const coincideMantel = (filtroMantelActual === 'todos') || (normalizarMantel(f) === filtroMantelActual);
         if (!coincideMantel) return false;
@@ -265,7 +265,6 @@
         const nombreEmp = f.nombre || f.nombre_emprendimiento || '';
         const textoFeriante = `${f.nombre || ''} ${nombreEmp} ${f.biografia || ''} ${f.rubro || ''} ${estado}`.toLowerCase();
 
-        // Buscar si este feriante tiene algún producto que coincida con la consulta
         const tieneProductoCoincidente = productosCache.some(p => 
           p.feriante_id === f.id && 
           `${p.nombre || ''} ${p.descripcion || ''} ${p.categoria || ''}`.toLowerCase().includes(query)
