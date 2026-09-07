@@ -43,7 +43,7 @@
         <a href="index.html" class="hover:text-brand-green">Inicio</a>
         <a href="huella.html" class="hover:text-brand-green">Huella de Carbono</a>
       </nav>
-      <a id="btn-soporte-header" href="https://wa.me/3511234567" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
+      <a id="btn-soporte-header" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 shadow transition">
         <i class="fa-brands fa-whatsapp text-lg"></i>
         <span>Soporte</span>
       </a>
@@ -314,11 +314,19 @@
       filtrarFeriantes();
     }
 
+    function normalizarTexto(txt) {
+      return (txt || '')
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
     function normalizarMantel(f) {
-      const v = (f.color_mantel || f.categoria || f.rubro || '').toLowerCase().trim();
+      const v = normalizarTexto(f.color_mantel || f.categoria || f.rubro);
       if (v.includes('amarillo') || v.includes('alimen')) return 'amarillo';
       if (v.includes('azul') || v.includes('textil') || v.includes('moda')) return 'azul';
-      if (v.includes('bordo') || v.includes('bordó') || v.includes('artesan')) return 'bordo';
+      if (v.includes('bordo') || v.includes('artesan')) return 'bordo';
       if (v.includes('verde') || v.includes('impacto') || v.includes('natura')) return 'verde';
       return 'blanco';
     }
@@ -329,20 +337,29 @@
     }
 
     function filtrarFeriantes() {
-      const q = (document.getElementById('input-busqueda-feria')?.value || '').toLowerCase().trim();
+      const q = normalizarTexto(document.getElementById('input-busqueda-feria')?.value);
 
+      // Buscar IDs de feriantes con coincidencia en productos o categorías/tags de productos
       const idsFeriantesConProducto = productosCache
-        .filter(p => (p.nombre || '').toLowerCase().includes(q) || (p.descripcion || '').toLowerCase().includes(q))
+        .filter(p => {
+          const nombreP = normalizarTexto(p.nombre);
+          const descP = normalizarTexto(p.descripcion);
+          const catP = normalizarTexto(p.categoria || p.rubro || p.tags);
+          return nombreP.includes(q) || descP.includes(q) || catP.includes(q);
+        })
         .map(p => p.feriante_id);
 
       const filtrados = feriantesCache.filter(f => {
         const color = normalizarMantel(f);
         const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
 
-        const nombreEmp = (f.nombre || f.nombre_emprendimiento || '').toLowerCase();
-        const bio = (f.biografia || f.descripcion || f.categoria || '').toLowerCase();
+        const nombreEmp = normalizarTexto(f.nombre || f.nombre_emprendimiento);
+        const bio = normalizarTexto(f.biografia || f.descripcion || f.categoria || f.rubro);
 
-        const matchTexto = q === '' || nombreEmp.includes(q) || bio.includes(q) || idsFeriantesConProducto.includes(f.id);
+        const matchTexto = q === '' || 
+                           nombreEmp.includes(q) || 
+                           bio.includes(q) || 
+                           idsFeriantesConProducto.includes(f.id);
 
         return matchMantel && matchTexto;
       });
