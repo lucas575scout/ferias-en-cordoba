@@ -236,7 +236,7 @@
       return 'blanco';
     }
 
-    // BÚSQUEDA Y FILTRADO
+    // BÚSQUEDA Y FILTRADO INTELIGENTE UNIFICADO
     function aplicarBusquedaInteligente() {
       const grid = document.getElementById('grid-ferias');
       const tituloDirectorio = document.getElementById('txt-directorio-titulo');
@@ -256,15 +256,23 @@
         return textoCompleto.includes(query);
       });
 
-      // 2. Filtrar Feriantes
+      // 2. Filtrar Feriantes (También chequea si alguno de sus productos coincide con la búsqueda ej: "alfajor")
       const feriantesFiltrados = feriantesCache.filter(f => {
         const coincideMantel = (filtroMantelActual === 'todos') || (normalizarMantel(f) === filtroMantelActual);
         if (!coincideMantel) return false;
-        if (!query) return true;
-
+        
         const estado = (f.activo !== false) ? 'activo' : 'inactivo';
-        const textoCompleto = `${f.nombre || ''} ${f.nombre_emprendimiento || ''} ${f.biografia || ''} ${f.rubro || ''} ${estado}`.toLowerCase();
-        return textoCompleto.includes(query);
+        const nombreEmp = f.nombre || f.nombre_emprendimiento || '';
+        const textoFeriante = `${f.nombre || ''} ${nombreEmp} ${f.biografia || ''} ${f.rubro || ''} ${estado}`.toLowerCase();
+
+        // Buscar si este feriante tiene algún producto que coincida con la consulta
+        const tieneProductoCoincidente = productosCache.some(p => 
+          p.feriante_id === f.id && 
+          `${p.nombre || ''} ${p.descripcion || ''} ${p.categoria || ''}`.toLowerCase().includes(query)
+        );
+
+        if (!query) return true;
+        return textoFeriante.includes(query) || tieneProductoCoincidente;
       });
 
       // 3. Filtrar Productos Individuales
