@@ -72,7 +72,7 @@
         </div>
       </div>
 
-      <!-- BOTONES DE CONTACTO DIRECCIONADOS EXTERNAMENTE -->
+      <!-- BOTONES DE CONTACTO -->
       <div class="flex flex-wrap gap-2 justify-center">
         <a id="btn-wsp" href="#" target="_blank" rel="noopener noreferrer" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 shadow transition">
           <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp
@@ -155,6 +155,13 @@
 
     let ferianteId = null;
 
+    // Sanitizador contra ataques XSS
+    function sanitizar(texto) {
+      const div = document.createElement('div');
+      div.textContent = texto || '';
+      return div.innerHTML;
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       ferianteId = params.get('id');
@@ -165,119 +172,156 @@
         return;
       }
 
-      await cargarDatosFeriante();
-      await cargarProductos();
-      await cargarComentarios();
+      await Promise.all([
+        cargarDatosFeriante(),
+        cargarProductos(),
+        cargarComentarios()
+      ]);
     });
 
     async function cargarDatosFeriante() {
-      const { data: f } = await _supabase.from('feriantes').select('*, ferias(nombre)').eq('id', ferianteId).single();
-      if (!f) return;
+      try {
+        const { data: f, error } = await _supabase
+          .from('feriantes')
+          .select('*, ferias(nombre)')
+          .eq('id', ferianteId)
+          .single();
 
-      const nombre = f.nombre || f.nombre_emprendimiento || 'Emprendedor';
-      document.getElementById('meta-title').innerText = `${nombre} | Ferias en Córdoba`;
-      document.getElementById('feriante-nombre').innerText = nombre;
-      document.getElementById('badge-rubro').innerText = f.categoria || f.rubro || f.color_mantel || 'Artesanías';
-      document.getElementById('feriante-feria').innerHTML = `<i class="fa-solid fa-store text-brand-green"></i> <span>Feria: ${f.ferias?.nombre || 'Independiente'}</span>`;
-      document.getElementById('feriante-bio').innerText = f.biografia || f.descripcion || 'Sin descripción disponible.';
+        if (error || !f) throw new Error('No se encontraron datos del feriante');
 
-      if (f.logo_url || f.perfil_url) {
-        document.getElementById('feriante-logo').src = f.logo_url || f.perfil_url;
-      }
+        const nombre = f.nombre_emprendimiento || f.nombre || 'Emprendedor';
+        document.getElementById('meta-title').innerText = `${nombre} | Ferias en Córdoba`;
+        document.getElementById('feriante-nombre').innerText = nombre;
+        document.getElementById('badge-rubro').innerText = f.categoria || f.rubro || f.color_mantel || 'Artesanías';
+        document.getElementById('feriante-feria').innerHTML = `<i class="fa-solid fa-store text-brand-green"></i> <span>Feria: ${sanitizar(f.ferias?.nombre || 'Independiente')}</span>`;
+        document.getElementById('feriante-bio').innerText = f.biografia || f.descripcion || 'Sin descripción disponible.';
 
-      // CORRECCIÓN Y FORMATEO DE BOTONES DE CONTACTO
-      const btnIg = document.getElementById('btn-ig');
-      let rawIg = (f.instagram_url || f.instagram || '').trim();
-      
-      if (rawIg) {
-        if (!rawIg.startsWith('http://') && !rawIg.startsWith('https://')) {
-          rawIg = `https://instagram.com/${rawIg.replace('@', '')}`;
+        if (f.logo_url || f.perfil_url) {
+          document.getElementById('feriante-logo').src = f.logo_url || f.perfil_url;
         }
-        btnIg.href = rawIg;
-        btnIg.target = '_blank';
-        btnIg.classList.remove('hidden');
-      } else {
-        btnIg.classList.add('hidden');
-      }
 
-      const btnWsp = document.getElementById('btn-wsp');
-      let rawWsp = (f.whatsapp || f.telefono || '').toString().trim();
+        // Instagram
+        const btnIg = document.getElementById('btn-ig');
+        let rawIg = (f.instagram_url || f.instagram || '').trim();
+        if (rawIg) {
+          if (!rawIg.startsWith('http://') && !rawIg.startsWith('https://')) {
+            rawIg = `https://instagram.com/${rawIg.replace('@', '')}`;
+          }
+          btnIg.href = rawIg;
+          btnIg.classList.remove('hidden');
+        } else {
+          btnIg.classList.add('hidden');
+        }
 
-      if (rawWsp) {
-        const numLimpio = rawWsp.replace(/\D/g, '');
-        btnWsp.href = `https://wa.me/${numLimpio}`;
-        btnWsp.target = '_blank';
-        btnWsp.classList.remove('hidden');
-      } else {
-        btnWsp.classList.add('hidden');
-      }
+        // WhatsApp
+        const btnWsp = document.getElementById('btn-wsp');
+        let rawWsp = (f.whatsapp || f.telefono || '').toString().trim();
+        if (rawWsp) {
+          const numLimpio = rawWsp.replace(/\D/g, '');
+          btnWsp.href = `https://wa.me/${numLimpio}`;
+          btnWsp.classList.remove('hidden');
+        } else {
+          btnWsp.classList.add('hidden');
+        }
 
-      // INSIGNIAS
-      const containerInsignias = document.getElementById('container-insignias');
-      containerInsignias.innerHTML = '';
-      if (f.tags || f.insignias) {
-        const tags = (f.tags || f.insignias).split(',');
-        tags.forEach(t => {
-          const span = document.createElement('span');
-          span.className = 'text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200';
-          span.innerText = `✦ ${t.trim()}`;
-          containerInsignias.appendChild(span);
-        });
-      } else {
-        containerInsignias.innerHTML = '<span class="text-xs text-gray-400 italic">Sin insignias asociadas.</span>';
+        // PROCESAMIENTO DINÁMICO DE SKILLS / INSIGNIAS
+        const containerInsignias = document.getElementById('container-insignias');
+        containerInsignias.innerHTML = '';
+
+        let rawSkills = f.skills || f.tags || f.insignias || [];
+        let listaSkills = [];
+
+        if (typeof rawSkills === 'string') {
+          try {
+            listaSkills = JSON.parse(rawSkills);
+          } catch (e) {
+            listaSkills = rawSkills.split(',').map(s => s.trim());
+          }
+        } else if (Array.isArray(rawSkills)) {
+          listaSkills = rawSkills;
+        }
+
+        listaSkills = listaSkills.filter(item => Boolean(item));
+
+        if (listaSkills.length > 0) {
+          listaSkills.forEach(skill => {
+            const span = document.createElement('span');
+            span.className = 'inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-sm';
+            span.innerHTML = `<i class="fa-solid fa-award text-emerald-600 text-[10px]"></i> ${sanitizar(skill)}`;
+            containerInsignias.appendChild(span);
+          });
+        } else {
+          containerInsignias.innerHTML = '<span class="text-xs text-gray-400 italic">Sin insignias asociadas.</span>';
+        }
+
+      } catch (err) {
+        console.error('Error al cargar datos del feriante:', err.message);
       }
     }
 
     async function cargarProductos() {
-      let { data: prods } = await _supabase.from('productos').select('*').eq('feriante_id', ferianteId);
-      
-      if (!prods || prods.length === 0) {
-        const fallback = await _supabase.from('productos_feriante').select('*').eq('feriante_id', ferianteId);
-        prods = fallback.data || [];
+      try {
+        let { data: prods, error } = await _supabase.from('productos').select('*').eq('feriante_id', ferianteId);
+        
+        if (error || !prods || prods.length === 0) {
+          const fallback = await _supabase.from('productos_feriante').select('*').eq('feriante_id', ferianteId);
+          prods = fallback.data || [];
+        }
+
+        const grid = document.getElementById('grid-productos');
+        grid.innerHTML = '';
+
+        if (!prods || prods.length === 0) {
+          grid.innerHTML = '<p class="text-gray-400 text-sm col-span-2">Este emprendimiento aún no ha cargado productos en su catálogo.</p>';
+          return;
+        }
+
+        prods.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'border rounded-xl p-3 bg-white shadow-sm flex gap-3 items-center';
+          card.innerHTML = `
+            <img src="${p.imagen_url || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-lg object-cover border" alt="${sanitizar(p.nombre)}">
+            <div class="flex-grow min-w-0">
+              <h4 class="font-bold text-sm text-gray-900 truncate">${sanitizar(p.nombre)}</h4>
+              <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${sanitizar(p.descripcion)}</p>
+              ${p.precio ? `<p class="text-xs font-black text-brand-dark mt-1">$${p.precio}</p>` : ''}
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Error al cargar productos:', err.message);
       }
-
-      const grid = document.getElementById('grid-productos');
-      grid.innerHTML = '';
-
-      if (!prods || prods.length === 0) {
-        grid.innerHTML = '<p class="text-gray-400 text-sm col-span-2">Este emprendimiento aún no ha cargado productos en su catálogo.</p>';
-        return;
-      }
-
-      prods.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'border rounded-xl p-3 bg-white shadow-sm flex gap-3 items-center';
-        card.innerHTML = `
-          <img src="${p.imagen_url || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-lg object-cover border">
-          <div class="flex-grow min-w-0">
-            <h4 class="font-bold text-sm text-gray-900 truncate">${p.nombre}</h4>
-            <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">${p.descripcion || ''}</p>
-            ${p.precio ? `<p class="text-xs font-black text-brand-dark mt-1">$${p.precio}</p>` : ''}
-          </div>
-        `;
-        grid.appendChild(card);
-      });
     }
 
     async function cargarComentarios() {
-      const { data: coms } = await _supabase.from('comentarios').select('*').eq('destino_id', ferianteId).order('created_at', { ascending: false });
-      const container = document.getElementById('lista-comentarios');
-      container.innerHTML = '';
+      try {
+        const { data: coms, error } = await _supabase
+          .from('comentarios')
+          .select('*')
+          .eq('destino_id', ferianteId)
+          .order('created_at', { ascending: false });
 
-      if (!coms || coms.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400">Sé el primero en dejar una opinión.</p>';
-        return;
+        const container = document.getElementById('lista-comentarios');
+        container.innerHTML = '';
+
+        if (error || !coms || coms.length === 0) {
+          container.innerHTML = '<p class="text-xs text-gray-400">Sé el primero en dejar una opinión.</p>';
+          return;
+        }
+
+        coms.forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'bg-gray-50 p-3 rounded-lg border text-xs';
+          div.innerHTML = `
+            <div class="font-bold text-gray-800">${sanitizar(c.autor_nombre)}</div>
+            <p class="text-gray-600 mt-0.5">${sanitizar(c.mensaje)}</p>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Error al cargar comentarios:', err.message);
       }
-
-      coms.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'bg-gray-50 p-3 rounded-lg border text-xs';
-        div.innerHTML = `
-          <div class="font-bold text-gray-800">${c.autor_nombre}</div>
-          <p class="text-gray-600 mt-0.5">${c.mensaje}</p>
-        `;
-        container.appendChild(div);
-      });
     }
 
     async function enviarComentario(e) {
