@@ -122,19 +122,19 @@
         </div>
       </div>
 
-      <!-- DIRECTORIO DE FERIANTES DE ESTA FERIA CON BUSCADOR Y FILTRO -->
+      <!-- CATÁLOGO DE PRODUCTOS DE ESTA FERIA CON BUSCADOR Y FILTRO -->
       <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-users text-brand-green"></i> Feriantes Miembros
+          <i class="fa-solid fa-box-open text-brand-green"></i> Productos en esta Feria
         </h2>
         
         <!-- BUSCADOR POR PRODUCTO O EMPRENDIMIENTO -->
         <div class="relative">
-          <input type="text" id="input-busqueda-feria" onkeyup="filtrarFeriantes()" placeholder="Buscar producto o emprendimiento en esta feria..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
+          <input type="text" id="input-busqueda-feria" onkeyup="filtrarProductos()" placeholder="Buscar producto o emprendimiento..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
         </div>
 
-        <!-- FILTROS POR COLOR DE MANTEL / CATEGORÍA -->
+        <!-- FILTROS POR CATEGORÍA / MANTEL -->
         <div class="flex gap-2 overflow-x-auto pb-2 text-xs font-semibold">
           <button onclick="seleccionarMantel('todos')" class="px-3 py-1.5 rounded-full border bg-gray-100 whitespace-nowrap">⚪ Todos</button>
           <button onclick="seleccionarMantel('amarillo')" class="px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-900 border border-yellow-300 whitespace-nowrap">🟡 Alimentación</button>
@@ -143,8 +143,9 @@
           <button onclick="seleccionarMantel('verde')" class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap">🟢 Impacto / Natura</button>
         </div>
 
-        <div id="grid-feriantes-miembros" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <p class="text-gray-400 text-sm">Cargando feriantes...</p>
+        <!-- GRILLA DE PRODUCTOS -->
+        <div id="grid-productos-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <p class="text-gray-400 text-sm">Cargando productos...</p>
         </div>
       </div>
 
@@ -219,7 +220,7 @@
     }
 
     function formatearMapa(link, lat, lng) {
-      if (link && (link.startsWith('http://') || link.startsWith('https://'))) return link;
+      if (link && (link.startsWith('http://' ) || link.startsWith('https://'))) return link;
       if (lat && lng) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
       return null;
     }
@@ -357,7 +358,7 @@
         }
       }
 
-      filtrarFeriantes();
+      filtrarProductos();
     }
 
     function normalizarTexto(txt) {
@@ -379,74 +380,68 @@
 
     function seleccionarMantel(color) {
       mantelSeleccionado = color;
-      filtrarFeriantes();
+      filtrarProductos();
     }
 
-    function filtrarFeriantes() {
+    function filtrarProductos() {
       const q = normalizarTexto(document.getElementById('input-busqueda-feria')?.value);
 
-      const idsFeriantesConProducto = productosCache
-        .filter(p => {
-          const nombreP = normalizarTexto(p.nombre);
-          const descP = normalizarTexto(p.descripcion);
-          const catP = normalizarTexto(p.categoria || p.rubro || p.tags);
-          return nombreP.includes(q) || descP.includes(q) || catP.includes(q);
-        })
-        .map(p => p.feriante_id);
-
-      const filtrados = feriantesCache.filter(f => {
-        const color = normalizarMantel(f);
+      const productosFiltrados = productosCache.filter(p => {
+        // Buscar el feriante dueño de este producto para matchear categoría / mantel o nombre de emprendimiento
+        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
+        
+        const color = normalizarMantel(ferianteDuenio);
         const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
 
-        const nombreEmp = normalizarTexto(f.nombre_emprendimiento || f.nombre);
-        const bio = normalizarTexto(f.biografia || f.descripcion || f.categoria || f.rubro);
+        const nombreProd = normalizarTexto(p.nombre);
+        const descProd = normalizarTexto(p.descripcion);
+        const catProd = normalizarTexto(p.categoria || p.rubro || p.tags);
+        const nombreEmp = normalizarTexto(ferianteDuenio.nombre_emprendimiento || ferianteDuenio.nombre);
 
         const matchTexto = q === '' || 
-                           nombreEmp.includes(q) || 
-                           bio.includes(q) || 
-                           idsFeriantesConProducto.includes(f.id);
+                           nombreProd.includes(q) || 
+                           descProd.includes(q) || 
+                           catProd.includes(q) || 
+                           nombreEmp.includes(q);
 
         return matchMantel && matchTexto;
       });
 
-      renderizarFeriantes(filtrados);
+      renderizarProductos(productosFiltrados);
     }
 
-    function renderizarFeriantes(lista) {
-      const container = document.getElementById('grid-feriantes-miembros');
+    function renderizarProductos(lista) {
+      const container = document.getElementById('grid-productos-feria');
       container.innerHTML = '';
 
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron feriantes o productos que coincidan.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron productos que coincidan con la búsqueda.</p>';
         return;
       }
 
-      lista.forEach(f => {
+      lista.forEach(p => {
+        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-3 flex items-center justify-between gap-3 bg-white shadow-sm hover:border-brand-green transition';
 
-        const urlWsp = formatearWhatsApp(f.whatsapp || f.telefono);
-        const urlIg = formatearInstagram(f.instagram || f.instagram_url);
-
+        const urlWsp = formatearWhatsApp(p.whatsapp || ferianteDuenio.whatsapp || ferianteDuenio.telefono);
         const btnWspHTML = urlWsp 
-          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
+          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="Consultar por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
           : '';
-        const btnIgHTML = urlIg 
-          ? `<a href="${urlIg}" target="_blank" rel="noopener noreferrer" class="text-pink-600 hover:text-pink-700 text-base p-1" title="Instagram"><i class="fa-brands fa-instagram"></i></a>` 
-          : '';
+
+        const precioFormateado = p.precio ? `$${Number(p.precio).toLocaleString('es-AR')}` : '';
 
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
-            <img src="${f.logo_url || f.perfil_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border flex-shrink-0">
+            <img src="${p.imagen_url || p.foto_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-lg object-cover border flex-shrink-0">
             <div class="flex-grow min-w-0">
-              <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre_emprendimiento || f.nombre || 'Emprendimiento'}</h4>
-              <p class="text-xs text-gray-500 capitalize truncate">${f.categoria || f.rubro || 'Feriante'}</p>
-              <a href="feriante.html?id=${f.id}" class="text-xs text-brand-green font-semibold hover:underline mt-1 inline-block">Ver perfil</a>
+              <h4 class="font-bold text-sm text-gray-900 truncate">${p.nombre || 'Producto'}</h4>
+              <p class="text-xs text-brand-green font-semibold">${precioFormateado}</p>
+              <p class="text-xs text-gray-500 truncate mt-0.5">Por: <a href="feriante.html?id=${ferianteDuenio.id}" class="hover:underline text-gray-700 font-medium">${ferianteDuenio.nombre_emprendimiento || 'Emprendedor'}</a></p>
             </div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
             ${btnWspHTML}
-            ${btnIgHTML}
           </div>
         `;
         container.appendChild(card);
