@@ -161,9 +161,9 @@
     }
 
     async function cargarMetricasYGraficos() {
-      // 1. Consultar productos de la tabla 'productos_feriantes'
+      // 1. Consultar productos de la tabla correcta 'productos_feriante' (en singular)
       const { data: productos } = await _supabase
-        .from('productos_feriantes')
+        .from('productos_feriante')
         .select('co2_ahorrado_unitario, categoria, feriante_id');
 
       // 2. Consultar feriantes para mapear a qué feria pertenecen
