@@ -122,16 +122,16 @@
         </div>
       </div>
 
-      <!-- DIRECTORIO DE FERIANTES DE ESTA FERIA -->
+      <!-- BUSCADOR GLOBAL Y RESULTADOS (FERIANTES Y PRODUCTOS DE ESTA FERIA) -->
       <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-store text-brand-green"></i> Feriantes en esta Feria
+          <i class="fa-solid fa-magnifying-glass text-brand-green"></i> Buscar Feriantes o Productos en esta Feria
         </h2>
         
-        <!-- BUSCADOR POR EMPRENDIMIENTO -->
+        <!-- INPUT DE BÚSQUEDA GENERAL -->
         <div class="relative">
-          <input type="text" id="input-busqueda-feria" onkeyup="filtrarFeriantes()" placeholder="Buscar emprendimiento o feriante..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+          <input type="text" id="input-busqueda-feria" onkeyup="ejecutarBusquedaUniversal()" placeholder="Buscá por producto (ej. alfajores) o feriante..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
+          <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
         </div>
 
         <!-- FILTROS POR CATEGORÍA / MANTEL -->
@@ -143,9 +143,21 @@
           <button onclick="seleccionarMantel('verde')" class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap">🟢 Impacto / Natura</button>
         </div>
 
-        <!-- GRILLA DE FERIANTES -->
-        <div id="grid-feriantes-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <p class="text-gray-400 text-sm">Cargando feriantes...</p>
+        <!-- CONTENEDOR DE RESULTADOS COMBINADOS -->
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i class="fa-solid fa-store text-brand-green"></i> Emprendedores / Feriantes</h3>
+            <div id="grid-feriantes-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <p class="text-gray-400 text-xs">Cargando feriantes...</p>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t">
+            <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i class="fa-solid fa-box-open text-brand-green"></i> Productos Encontrados</h3>
+            <div id="grid-productos-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <p class="text-gray-400 text-xs">Cargando productos...</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -200,9 +212,9 @@
 
     let feriaId = null;
     let feriantesCache = [];
+    let productosCache = [];
     let mantelSeleccionado = 'todos';
 
-    // FUNCIONES HELPER DE FORMATEO DE ENLACES
     function formatearWhatsApp(numero) {
       if (!numero) return null;
       const limpio = String(numero).replace(/\D/g, '');
@@ -237,7 +249,7 @@
       await cargarDatosFeria();
       await cargarSkills();
       await cargarMuroAvisos();
-      await cargarFeriantes();
+      await cargarFeriantesYProductos();
       await cargarHuellaFeria();
       await cargarComentarios();
     });
@@ -254,14 +266,11 @@
       if (feria.portada_url) document.getElementById('feria-portada').src = feria.portada_url;
       if (feria.logo_url) document.getElementById('feria-logo').src = feria.logo_url;
       
-      // CONFIGURAR Y MOSTRAR BOTONES SI POSEEN URL VÁLIDA
       const btnLlegar = document.getElementById('btn-como-llegar');
       const urlMapa = formatearMapa(feria.link_mapa, feria.latitud, feria.longitud);
       if (urlMapa) {
         btnLlegar.href = urlMapa;
         btnLlegar.classList.remove('hidden');
-      } else {
-        btnLlegar.classList.add('hidden');
       }
 
       const btnWsp = document.getElementById('btn-wsp-feria');
@@ -269,8 +278,6 @@
       if (urlWsp) {
         btnWsp.href = urlWsp;
         btnWsp.classList.remove('hidden');
-      } else {
-        btnWsp.classList.add('hidden');
       }
 
       const btnIg = document.getElementById('btn-ig-feria');
@@ -278,11 +285,8 @@
       if (urlIg) {
         btnIg.href = urlIg;
         btnIg.classList.remove('hidden');
-      } else {
-        btnIg.classList.add('hidden');
       }
 
-      // DETECCIÓN Y VISUALIZACIÓN MODO LLUVIA
       const esLluvia = feria.modo_lluvia === true || feria.modo_lluvia === 'true' || feria.modo_lluvia === 'activo';
       if (esLluvia) {
         document.getElementById('banner-lluvia-feria').classList.remove('hidden');
@@ -303,7 +307,6 @@
           badge.className = 'text-xs px-2.5 py-1 rounded-full font-semibold text-white flex items-center gap-1 shadow-sm';
           badge.style.backgroundColor = s.color_hex || '#2E7D32';
           badge.innerHTML = `<i class="fa-solid ${s.icono || 'fa-certificate'}"></i> ${s.nombre}`;
-          badge.title = s.descripcion || s.nombre;
           container.appendChild(badge);
         });
       } else {
@@ -341,10 +344,23 @@
       });
     }
 
-    async function cargarFeriantes() {
+    async function cargarFeriantesYProductos() {
       const { data: feriantes } = await _supabase.from('feriantes').select('*').eq('feria_id', feriaId);
       feriantesCache = feriantes || [];
-      filtrarFeriantes();
+
+      if (feriantesCache.length > 0) {
+        const idsFeriantes = feriantesCache.map(f => f.id);
+        const { data: prods } = await _supabase.from('productos').select('*').in('feriante_id', idsFeriantes);
+        
+        if (prods && prods.length > 0) {
+          productosCache = prods;
+        } else {
+          const fallback = await _supabase.from('productos_feriante').select('*').in('feriante_id', idsFeriantes);
+          productosCache = fallback.data || [];
+        }
+      }
+
+      ejecutarBusquedaUniversal();
     }
 
     function normalizarTexto(txt) {
@@ -366,29 +382,36 @@
 
     function seleccionarMantel(color) {
       mantelSeleccionado = color;
-      filtrarFeriantes();
+      ejecutarBusquedaUniversal();
     }
 
-    function filtrarFeriantes() {
+    function ejecutarBusquedaUniversal() {
       const q = normalizarTexto(document.getElementById('input-busqueda-feria')?.value);
 
+      // 1. Filtrar Feriantes
       const feriantesFiltrados = feriantesCache.filter(f => {
         const color = normalizarMantel(f);
         const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
-
         const nombreEmp = normalizarTexto(f.nombre_emprendimiento || f.nombre);
         const bioEmp = normalizarTexto(f.biografia || f.descripcion);
-        const catEmp = normalizarTexto(f.categoria || f.rubro || f.tags);
+        const matchTexto = q === '' || nombreEmp.includes(q) || bioEmp.includes(q);
+        return matchMantel && matchTexto;
+      });
 
-        const matchTexto = q === '' || 
-                           nombreEmp.includes(q) || 
-                           bioEmp.includes(q) || 
-                           catEmp.includes(q);
-
+      // 2. Filtrar Productos de esta feria
+      const productosFiltrados = productosCache.filter(p => {
+        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
+        const color = normalizarMantel(ferianteDuenio);
+        const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
+        
+        const nombreProd = normalizarTexto(p.nombre);
+        const descProd = normalizarTexto(p.descripcion);
+        const matchTexto = q === '' || nombreProd.includes(q) || descProd.includes(q);
         return matchMantel && matchTexto;
       });
 
       renderizarFeriantes(feriantesFiltrados);
+      renderizarProductos(productosFiltrados);
     }
 
     function renderizarFeriantes(lista) {
@@ -396,18 +419,15 @@
       container.innerHTML = '';
 
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron feriantes que coincidan con la búsqueda.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron feriantes.</p>';
         return;
       }
 
       lista.forEach(f => {
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-3 flex items-center justify-between gap-3 bg-white shadow-sm hover:border-brand-green transition';
-
         const urlWsp = formatearWhatsApp(f.whatsapp || f.telefono);
-        const btnWspHTML = urlWsp 
-          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="Contactar por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
-          : '';
+        const btnWspHTML = urlWsp ? `<a href="${urlWsp}" target="_blank" class="text-green-600 hover:text-green-700 text-base p-1"><i class="fa-brands fa-whatsapp"></i></a>` : '';
 
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
@@ -420,6 +440,40 @@
           <div class="flex items-center gap-1 flex-shrink-0">
             ${btnWspHTML}
             <a href="feriante.html?id=${f.id}" class="text-brand-green hover:underline text-xs font-semibold px-2 py-1 bg-brand-lightgreen rounded">Ver</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderizarProductos(lista) {
+      const container = document.getElementById('grid-productos-feria');
+      container.innerHTML = '';
+
+      if (lista.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron productos para esta búsqueda.</p>';
+        return;
+      }
+
+      lista.forEach(p => {
+        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-3 flex items-center justify-between gap-3 bg-white shadow-sm hover:border-brand-green transition';
+        const urlWsp = formatearWhatsApp(p.whatsapp || ferianteDuenio.whatsapp || ferianteDuenio.telefono);
+        const btnWspHTML = urlWsp ? `<a href="${urlWsp}" target="_blank" class="text-green-600 hover:text-green-700 text-base p-1"><i class="fa-brands fa-whatsapp"></i></a>` : '';
+        const precioFormateado = p.precio ? `$${Number(p.precio).toLocaleString('es-AR')}` : '';
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${p.imagen_url || p.foto_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-lg object-cover border flex-shrink-0">
+            <div class="flex-grow min-w-0">
+              <h4 class="font-bold text-sm text-gray-900 truncate">${p.nombre || 'Producto'}</h4>
+              <p class="text-xs text-brand-green font-semibold">${precioFormateado}</p>
+              <p class="text-xs text-gray-500 truncate mt-0.5">Por: <a href="feriante.html?id=${ferianteDuenio.id}" class="hover:underline text-gray-700 font-medium">${ferianteDuenio.nombre_emprendimiento || 'Emprendedor'}</a></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            ${btnWspHTML}
           </div>
         `;
         container.appendChild(card);
