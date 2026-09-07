@@ -122,15 +122,15 @@
         </div>
       </div>
 
-      <!-- CATÁLOGO DE PRODUCTOS DE ESTA FERIA CON BUSCADOR Y FILTRO -->
+      <!-- DIRECTORIO DE FERIANTES DE ESTA FERIA -->
       <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-box-open text-brand-green"></i> Productos en esta Feria
+          <i class="fa-solid fa-store text-brand-green"></i> Feriantes en esta Feria
         </h2>
         
-        <!-- BUSCADOR POR PRODUCTO O EMPRENDIMIENTO -->
+        <!-- BUSCADOR POR EMPRENDIMIENTO -->
         <div class="relative">
-          <input type="text" id="input-busqueda-feria" onkeyup="filtrarProductos()" placeholder="Buscar producto o emprendimiento..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
+          <input type="text" id="input-busqueda-feria" onkeyup="filtrarFeriantes()" placeholder="Buscar emprendimiento o feriante..." class="w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
         </div>
 
@@ -143,9 +143,9 @@
           <button onclick="seleccionarMantel('verde')" class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 whitespace-nowrap">🟢 Impacto / Natura</button>
         </div>
 
-        <!-- GRILLA DE PRODUCTOS -->
-        <div id="grid-productos-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <p class="text-gray-400 text-sm">Cargando productos...</p>
+        <!-- GRILLA DE FERIANTES -->
+        <div id="grid-feriantes-feria" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <p class="text-gray-400 text-sm">Cargando feriantes...</p>
         </div>
       </div>
 
@@ -200,7 +200,6 @@
 
     let feriaId = null;
     let feriantesCache = [];
-    let productosCache = [];
     let mantelSeleccionado = 'todos';
 
     // FUNCIONES HELPER DE FORMATEO DE ENLACES
@@ -238,7 +237,7 @@
       await cargarDatosFeria();
       await cargarSkills();
       await cargarMuroAvisos();
-      await cargarFeriantesYProductos();
+      await cargarFeriantes();
       await cargarHuellaFeria();
       await cargarComentarios();
     });
@@ -342,23 +341,10 @@
       });
     }
 
-    async function cargarFeriantesYProductos() {
+    async function cargarFeriantes() {
       const { data: feriantes } = await _supabase.from('feriantes').select('*').eq('feria_id', feriaId);
       feriantesCache = feriantes || [];
-
-      if (feriantesCache.length > 0) {
-        const idsFeriantes = feriantesCache.map(f => f.id);
-        const { data: prods } = await _supabase.from('productos').select('*').in('feriante_id', idsFeriantes);
-        
-        if (prods && prods.length > 0) {
-          productosCache = prods;
-        } else {
-          const fallback = await _supabase.from('productos_feriante').select('*').in('feriante_id', idsFeriantes);
-          productosCache = fallback.data || [];
-        }
-      }
-
-      filtrarProductos();
+      filtrarFeriantes();
     }
 
     function normalizarTexto(txt) {
@@ -380,68 +366,60 @@
 
     function seleccionarMantel(color) {
       mantelSeleccionado = color;
-      filtrarProductos();
+      filtrarFeriantes();
     }
 
-    function filtrarProductos() {
+    function filtrarFeriantes() {
       const q = normalizarTexto(document.getElementById('input-busqueda-feria')?.value);
 
-      const productosFiltrados = productosCache.filter(p => {
-        // Buscar el feriante dueño de este producto para matchear categoría / mantel o nombre de emprendimiento
-        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
-        
-        const color = normalizarMantel(ferianteDuenio);
+      const feriantesFiltrados = feriantesCache.filter(f => {
+        const color = normalizarMantel(f);
         const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
 
-        const nombreProd = normalizarTexto(p.nombre);
-        const descProd = normalizarTexto(p.descripcion);
-        const catProd = normalizarTexto(p.categoria || p.rubro || p.tags);
-        const nombreEmp = normalizarTexto(ferianteDuenio.nombre_emprendimiento || ferianteDuenio.nombre);
+        const nombreEmp = normalizarTexto(f.nombre_emprendimiento || f.nombre);
+        const bioEmp = normalizarTexto(f.biografia || f.descripcion);
+        const catEmp = normalizarTexto(f.categoria || f.rubro || f.tags);
 
         const matchTexto = q === '' || 
-                           nombreProd.includes(q) || 
-                           descProd.includes(q) || 
-                           catProd.includes(q) || 
-                           nombreEmp.includes(q);
+                           nombreEmp.includes(q) || 
+                           bioEmp.includes(q) || 
+                           catEmp.includes(q);
 
         return matchMantel && matchTexto;
       });
 
-      renderizarProductos(productosFiltrados);
+      renderizarFeriantes(feriantesFiltrados);
     }
 
-    function renderizarProductos(lista) {
-      const container = document.getElementById('grid-productos-feria');
+    function renderizarFeriantes(lista) {
+      const container = document.getElementById('grid-feriantes-feria');
       container.innerHTML = '';
 
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron productos que coincidan con la búsqueda.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-2">No se encontraron feriantes que coincidan con la búsqueda.</p>';
         return;
       }
 
-      lista.forEach(p => {
-        const ferianteDuenio = feriantesCache.find(f => f.id === p.feriante_id) || {};
+      lista.forEach(f => {
         const card = document.createElement('div');
         card.className = 'border rounded-xl p-3 flex items-center justify-between gap-3 bg-white shadow-sm hover:border-brand-green transition';
 
-        const urlWsp = formatearWhatsApp(p.whatsapp || ferianteDuenio.whatsapp || ferianteDuenio.telefono);
+        const urlWsp = formatearWhatsApp(f.whatsapp || f.telefono);
         const btnWspHTML = urlWsp 
-          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="Consultar por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
+          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="Contactar por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
           : '';
-
-        const precioFormateado = p.precio ? `$${Number(p.precio).toLocaleString('es-AR')}` : '';
 
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
-            <img src="${p.imagen_url || p.foto_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-lg object-cover border flex-shrink-0">
+            <img src="${f.logo_url || f.perfil_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-lg object-cover border flex-shrink-0">
             <div class="flex-grow min-w-0">
-              <h4 class="font-bold text-sm text-gray-900 truncate">${p.nombre || 'Producto'}</h4>
-              <p class="text-xs text-brand-green font-semibold">${precioFormateado}</p>
-              <p class="text-xs text-gray-500 truncate mt-0.5">Por: <a href="feriante.html?id=${ferianteDuenio.id}" class="hover:underline text-gray-700 font-medium">${ferianteDuenio.nombre_emprendimiento || 'Emprendedor'}</a></p>
+              <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre_emprendimiento || f.nombre || 'Emprendedor'}</h4>
+              <p class="text-xs text-gray-500 truncate mt-0.5">${f.biografia || f.rubro || 'Sin descripción'}</p>
             </div>
           </div>
           <div class="flex items-center gap-1 flex-shrink-0">
             ${btnWspHTML}
+            <a href="feriante.html?id=${f.id}" class="text-brand-green hover:underline text-xs font-semibold px-2 py-1 bg-brand-lightgreen rounded">Ver</a>
           </div>
         `;
         container.appendChild(card);
