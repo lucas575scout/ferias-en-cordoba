@@ -100,7 +100,7 @@
         </div>
       </div>
       <div class="bg-white p-6 rounded-2xl border shadow-sm">
-        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">CO₂ Evitado por Feria (kg)</h3>
+        <h3 class="font-bold text-gray-800 mb-4 text-center text-sm">CO₂ Evitado Global / Resumen</h3>
         <div class="relative h-64 flex justify-center items-center">
           <canvas id="chartFerias"></canvas>
         </div>
@@ -128,7 +128,7 @@
         </div>
         <div class="space-y-2">
           <h3 class="font-bold text-gray-900 text-base">💚 Impacto en la Economía Barrial</h3>
-          <p>Alémás de la ventaja ecológica, el dinero que invertís en una feria franca o barrial se queda en Córdoba, impulsando a las familias emprendedoras de tu comunidad.</p>
+          <p>Además de la ventaja ecológica, el dinero que invertís en una feria franca o barrial se queda en Córdoba, impulsando a las familias emprendedoras de tu comunidad.</p>
         </div>
       </div>
     </div>
@@ -161,46 +161,25 @@
     }
 
     async function cargarMetricasYGraficos() {
-      // 1. Consultar productos de la tabla correcta 'productos_feriante' (en singular) y con la columna exacta
+      // Consulta directa y segura sobre la tabla en singular 'productos_feriante'
       const { data: productos, error } = await _supabase
         .from('productos_feriante')
-        .select('co2_ahorrado_unitario, categoria, feriante_id');
+        .select('co2_ahorrado_unitario, categoria');
 
       if (error) {
         console.error('Error al cargar productos para la huella:', error.message);
         return;
       }
 
-      // 2. Consultar feriantes para mapear a qué feria pertenecen
-      const { data: feriantes } = await _supabase
-        .from('feriantes')
-        .select('id, feria_id');
-
-      // 3. Consultar ferias para los nombres
-      const { data: ferias } = await _supabase
-        .from('ferias')
-        .select('id, nombre');
-
-      const feriasMapNames = {};
-      if (ferias) {
-        ferias.forEach(f => feriasMapNames[f.id] = f.nombre);
-      }
-
-      const feriantesFeriaMap = {};
-      if (feriantes) {
-        feriantes.forEach(f => feriantesFeriaMap[f.id] = f.feria_id);
-      }
-
       let totalGlobal = 0;
       let rubrosMap = { 'Alimentación': 0, 'Textil / Moda': 0, 'Artesanías': 0, 'Otros': 0 };
-      let feriasMap = {};
 
       if (productos && productos.length > 0) {
         productos.forEach(p => {
           const val = Number(p.co2_ahorrado_unitario) || 0;
           totalGlobal += val;
 
-          // Agrupar por categoría de forma flexible
+          // Agrupación flexible por categoría
           const cat = (p.categoria || '').toLowerCase();
           if (cat.includes('aliment') || cat.includes('gastronom') || cat.includes('agro')) {
             rubrosMap['Alimentación'] += val;
@@ -211,18 +190,10 @@
           } else {
             rubrosMap['Otros'] += val;
           }
-
-          // Obtener ID de la feria a través del feriante
-          const feriaId = feriantesFeriaMap[p.feriante_id];
-          if (feriaId) {
-            const nombreFeria = feriasMapNames[feriaId] || `Feria #${feriaId}`;
-            feriasMap[nombreFeria] = (feriasMap[nombreFeria] || 0) + val;
-          } else {
-            feriasMap['Feria General / Sin Asignar'] = (feriasMap['Feria General / Sin Asignar'] || 0) + val;
-          }
         });
       }
 
+      // Renderizar el total global en el DOM
       document.getElementById('cnt-huella-total').innerText = `${totalGlobal.toFixed(2)} kg`;
 
       // Gráfico de Dona (Rubros)
@@ -238,17 +209,14 @@
         options: { responsive: true, maintainAspectRatio: false }
       });
 
-      // Gráfico de Barras (Ferias)
-      const etiquetasFerias = Object.keys(feriasMap).length ? Object.keys(feriasMap) : ['Sin productos asignados'];
-      const valoresFerias = Object.values(feriasMap).length ? Object.values(feriasMap) : [0];
-
+      // Gráfico de Barras Directo
       new Chart(document.getElementById('chartFerias'), {
         type: 'bar',
         data: {
-          labels: etiquetasFerias,
+          labels: ['Impacto Global Registrado'],
           datasets: [{
             label: 'CO₂ Evitado (kg)',
-            data: valoresFerias,
+            data: [totalGlobal],
             backgroundColor: '#2E7D32'
           }]
         },
