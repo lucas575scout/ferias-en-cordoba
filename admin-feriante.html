@@ -106,7 +106,7 @@
             <input type="file" id="feriante-logo" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Foto de Perfil del Emprendendedor</label>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Foto de Perfil del Emprendedor</label>
             <input type="file" id="feriante-perfil" accept="image/*" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
           </div>
           <div>
@@ -375,7 +375,6 @@
       const fotoUrl = await subirImagen(document.getElementById('prod-foto'), 'productos');
 
       if (fotoUrl) {
-        // Asignamos el valor de CO2 ahorrado unitario según la categoría del feriante
         let co2Unitario = 1.0; 
         const cat = (ferianteActual.categoria || '').toLowerCase();
         if (cat.includes('aliment')) co2Unitario = 0.8;
@@ -388,7 +387,6 @@
           precio: precio ? parseFloat(precio) : null,
           imagen_url: fotoUrl, 
           feriante_id: ferianteActual.id,
-          categoria: ferianteActual.categoria || 'general',
           co2_ahorrado_unitario: co2Unitario 
         };
 
