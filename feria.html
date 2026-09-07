@@ -82,13 +82,13 @@
 
       <!-- BOTONES DE ACCIÓN Y CONTACTO -->
       <div class="flex flex-wrap gap-2 justify-center">
-        <a id="btn-como-llegar" href="#" target="_blank" class="bg-brand-green hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+        <a id="btn-como-llegar" href="#" target="_blank" rel="noopener noreferrer" class="hidden bg-brand-green hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
           <i class="fa-solid fa-route"></i> Cómo llegar
         </a>
-        <a id="btn-wsp-feria" href="#" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+        <a id="btn-wsp-feria" href="#" target="_blank" rel="noopener noreferrer" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
           <i class="fa-brands fa-whatsapp"></i> WhatsApp
         </a>
-        <a id="btn-ig-feria" href="#" target="_blank" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
+        <a id="btn-ig-feria" href="#" target="_blank" rel="noopener noreferrer" class="hidden bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 shadow transition">
           <i class="fa-brands fa-instagram"></i> Instagram
         </a>
       </div>
@@ -202,6 +202,28 @@
     let productosCache = [];
     let mantelSeleccionado = 'todos';
 
+    // FUNCIONES HELPER DE FORMATEO DE ENLACES
+    function formatearWhatsApp(numero) {
+      if (!numero) return null;
+      const limpio = String(numero).replace(/\D/g, '');
+      return limpio ? `https://wa.me/${limpio}` : null;
+    }
+
+    function formatearInstagram(usuario) {
+      if (!usuario) return null;
+      let str = String(usuario).trim();
+      if (!str) return null;
+      if (str.startsWith('http://') || str.startsWith('https://')) return str;
+      const username = str.replace('@', '').replace('/', '');
+      return username ? `https://instagram.com/${username}` : null;
+    }
+
+    function formatearMapa(link, lat, lng) {
+      if (link && (link.startsWith('http://') || link.startsWith('https://'))) return link;
+      if (lat && lng) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      return null;
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       feriaId = params.get('id');
@@ -232,9 +254,33 @@
       if (feria.portada_url) document.getElementById('feria-portada').src = feria.portada_url;
       if (feria.logo_url) document.getElementById('feria-logo').src = feria.logo_url;
       
-      if (feria.link_mapa) document.getElementById('btn-como-llegar').href = feria.link_mapa;
-      if (feria.whatsapp) document.getElementById('btn-wsp-feria').href = `https://wa.me/${feria.whatsapp}`;
-      if (feria.instagram_url) document.getElementById('btn-ig-feria').href = feria.instagram_url.startsWith('http') ? feria.instagram_url : `https://instagram.com/${feria.instagram_url.replace('@', '')}`;
+      // CONFIGURAR Y MOSTRAR BOTONES SI POSEEN URL VÁLIDA
+      const btnLlegar = document.getElementById('btn-como-llegar');
+      const urlMapa = formatearMapa(feria.link_mapa, feria.latitud, feria.longitud);
+      if (urlMapa) {
+        btnLlegar.href = urlMapa;
+        btnLlegar.classList.remove('hidden');
+      } else {
+        btnLlegar.classList.add('hidden');
+      }
+
+      const btnWsp = document.getElementById('btn-wsp-feria');
+      const urlWsp = formatearWhatsApp(feria.whatsapp || feria.telefono);
+      if (urlWsp) {
+        btnWsp.href = urlWsp;
+        btnWsp.classList.remove('hidden');
+      } else {
+        btnWsp.classList.add('hidden');
+      }
+
+      const btnIg = document.getElementById('btn-ig-feria');
+      const urlIg = formatearInstagram(feria.instagram_url || feria.instagram);
+      if (urlIg) {
+        btnIg.href = urlIg;
+        btnIg.classList.remove('hidden');
+      } else {
+        btnIg.classList.add('hidden');
+      }
 
       // DETECCIÓN Y VISUALIZACIÓN MODO LLUVIA
       const esLluvia = feria.modo_lluvia === true || feria.modo_lluvia === 'true' || feria.modo_lluvia === 'activo';
@@ -339,7 +385,6 @@
     function filtrarFeriantes() {
       const q = normalizarTexto(document.getElementById('input-busqueda-feria')?.value);
 
-      // Buscar IDs de feriantes con coincidencia en productos o categorías/tags de productos
       const idsFeriantesConProducto = productosCache
         .filter(p => {
           const nombreP = normalizarTexto(p.nombre);
@@ -353,7 +398,7 @@
         const color = normalizarMantel(f);
         const matchMantel = mantelSeleccionado === 'todos' || color === mantelSeleccionado;
 
-        const nombreEmp = normalizarTexto(f.nombre || f.nombre_emprendimiento);
+        const nombreEmp = normalizarTexto(f.nombre_emprendimiento || f.nombre);
         const bio = normalizarTexto(f.biografia || f.descripcion || f.categoria || f.rubro);
 
         const matchTexto = q === '' || 
@@ -378,13 +423,30 @@
 
       lista.forEach(f => {
         const card = document.createElement('div');
-        card.className = 'border rounded-xl p-3 flex items-center gap-3 bg-white shadow-sm hover:border-brand-green transition';
+        card.className = 'border rounded-xl p-3 flex items-center justify-between gap-3 bg-white shadow-sm hover:border-brand-green transition';
+
+        const urlWsp = formatearWhatsApp(f.whatsapp || f.telefono);
+        const urlIg = formatearInstagram(f.instagram || f.instagram_url);
+
+        const btnWspHTML = urlWsp 
+          ? `<a href="${urlWsp}" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:text-green-700 text-base p-1" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` 
+          : '';
+        const btnIgHTML = urlIg 
+          ? `<a href="${urlIg}" target="_blank" rel="noopener noreferrer" class="text-pink-600 hover:text-pink-700 text-base p-1" title="Instagram"><i class="fa-brands fa-instagram"></i></a>` 
+          : '';
+
         card.innerHTML = `
-          <img src="${f.logo_url || f.perfil_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border">
-          <div class="flex-grow min-w-0">
-            <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre || f.nombre_emprendimiento || 'Emprendimiento'}</h4>
-            <p class="text-xs text-gray-500 capitalize">${f.categoria || f.rubro || 'Feriante'}</p>
-            <a href="feriante.html?id=${f.id}" class="text-xs text-brand-green font-semibold hover:underline mt-1 inline-block">Ver perfil</a>
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${f.logo_url || f.perfil_url || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border flex-shrink-0">
+            <div class="flex-grow min-w-0">
+              <h4 class="font-bold text-sm text-gray-900 truncate">${f.nombre_emprendimiento || f.nombre || 'Emprendimiento'}</h4>
+              <p class="text-xs text-gray-500 capitalize truncate">${f.categoria || f.rubro || 'Feriante'}</p>
+              <a href="feriante.html?id=${f.id}" class="text-xs text-brand-green font-semibold hover:underline mt-1 inline-block">Ver perfil</a>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            ${btnWspHTML}
+            ${btnIgHTML}
           </div>
         `;
         container.appendChild(card);
