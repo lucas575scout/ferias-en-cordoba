@@ -375,12 +375,20 @@
       const fotoUrl = await subirImagen(document.getElementById('prod-foto'), 'productos');
 
       if (fotoUrl) {
-        // Se envían únicamente los campos básicos y seguros para evitar errores con columnas ausentes en la BD
+        // Cálculo automático de la huella de carbono según la categoría del feriante
+        let co2Unitario = 1.0; 
+        const cat = (ferianteActual.categoria || '').toLowerCase();
+        if (cat.includes('aliment')) co2Unitario = 0.8;
+        else if (cat.includes('textil')) co2Unitario = 1.5;
+        else if (cat.includes('artesan')) co2Unitario = 1.2;
+        else if (cat.includes('impacto')) co2Unitario = 0.9;
+
         const datosProd = { 
           nombre: nombre, 
           precio: precio ? parseFloat(precio) : null,
           imagen_url: fotoUrl, 
-          feriante_id: ferianteActual.id
+          feriante_id: ferianteActual.id,
+          co2_ahorrado_unitario: co2Unitario 
         };
 
         let { error } = await _supabase.from('productos').insert([datosProd]);
@@ -390,7 +398,7 @@
         }
 
         if (!error) {
-          alert('¡Producto agregado al catálogo exitosamente!');
+          alert('¡Producto agregado al catálogo y huella actualizada exitosamente!');
           document.getElementById('form-producto-feriante').reset();
           await cargarProductosPanel();
         } else {
