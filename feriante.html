@@ -232,12 +232,12 @@
           btnWsp.classList.add('hidden');
         }
 
-        // 2. BUSCAR INSIGNIAS DESDE LA TABLA PUENTE 'feriante_skills' Y LA TABLA 'skills'
+        // 2. BUSCAR INSIGNIAS DESDE LA TABLA CORRECTA 'feriantes_skills' Y LA TABLA 'skills'
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
         const { data: relSkills } = await _supabase
-          .from('feriante_skills')
+          .from('feriantes_skills')
           .select('skill_id')
           .eq('feriante_id', ferianteId);
 
