@@ -181,16 +181,10 @@
 
     async function cargarDatosFeriante() {
       try {
-        // Consulta cruzada con feria y habilidades por tabla intermedia
+        // 1. Traemos SOLO los datos principales del feriante y su feria de forma limpia
         const { data: f, error } = await _supabase
           .from('feriantes')
-          .select(`
-            *,
-            ferias(nombre),
-            feriante_skills(
-              habilidades(nombre)
-            )
-          `)
+          .select('*, ferias(nombre)')
           .eq('id', ferianteId)
           .single();
 
@@ -203,17 +197,18 @@
         document.getElementById('feriante-feria').innerHTML = `<i class="fa-solid fa-store text-brand-green"></i> <span>Feria: ${sanitizar(f.ferias?.nombre || 'Independiente')}</span>`;
         document.getElementById('feriante-bio').innerText = f.biografia || f.descripcion || 'Sin descripción disponible.';
 
+        // LOGO
         if (f.logo_url || f.perfil_url) {
           document.getElementById('feriante-logo').src = f.logo_url || f.perfil_url;
         }
 
-        // RENDERIZAR PORTADA DESDE LA BASE DE DATOS
+        // PORTADA DINÁMICA
         const contenedorPortada = document.getElementById('contenedor-portada');
         if (f.portada_url) {
           contenedorPortada.innerHTML = `<img src="${f.portada_url}" class="w-full h-full object-cover" alt="Portada de ${sanitizar(nombre)}">`;
         }
 
-        // Instagram
+        // INSTAGRAM
         const btnIg = document.getElementById('btn-ig');
         let rawIg = (f.instagram_url || f.instagram || '').trim();
         if (rawIg) {
@@ -226,7 +221,7 @@
           btnIg.classList.add('hidden');
         }
 
-        // WhatsApp
+        // WHATSAPP
         const btnWsp = document.getElementById('btn-wsp');
         let rawWsp = (f.whatsapp || f.telefono || '').toString().trim();
         if (rawWsp) {
@@ -237,27 +232,34 @@
           btnWsp.classList.add('hidden');
         }
 
-        // PROCESAMIENTO DINÁMICO DE SKILLS / INSIGNIAS DESDE LA TABLA INTERMEDIA
+        // 2. BUSCAR HABILIDADES DE FORMA INDEPENDIENTE (A prueba de fallos)
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
-        let listaSkills = [];
-        if (f.feriante_skills && Array.isArray(f.feriante_skills)) {
-          listaSkills = f.feriante_skills
-            .map(item => item.habilidades?.nombre)
-            .filter(Boolean);
+        const { data: relSkills } = await _supabase
+          .from('feriante_skills')
+          .select('skill_id')
+          .eq('feriante_id', ferianteId);
+
+        if (relSkills && relSkills.length > 0) {
+          const idsHabilidades = relSkills.map(r => r.skill_id);
+          const { data: listaHabs } = await _supabase
+            .from('habilidades')
+            .select('nombre')
+            .in('id', idsHabilidades);
+
+          if (listaHabs && listaHabs.length > 0) {
+            listaHabs.forEach(h => {
+              const span = document.createElement('span');
+              span.className = 'inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-sm';
+              span.innerHTML = `<i class="fa-solid fa-award text-emerald-600 text-[10px]"></i> ${sanitizar(h.nombre)}`;
+              containerInsignias.appendChild(span);
+            });
+            return;
+          }
         }
 
-        if (listaSkills.length > 0) {
-          listaSkills.forEach(skill => {
-            const span = document.createElement('span');
-            span.className = 'inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-sm';
-            span.innerHTML = `<i class="fa-solid fa-award text-emerald-600 text-[10px]"></i> ${sanitizar(skill)}`;
-            containerInsignias.appendChild(span);
-          });
-        } else {
-          containerInsignias.innerHTML = '<span class="text-xs text-gray-400 italic">Sin insignias asociadas.</span>';
-        }
+        containerInsignias.innerHTML = '<span class="text-xs text-gray-400 italic">Sin insignias asociadas.</span>';
 
       } catch (err) {
         console.error('Error al cargar datos del feriante:', err.message);
