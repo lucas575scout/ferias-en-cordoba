@@ -232,7 +232,7 @@
           btnWsp.classList.add('hidden');
         }
 
-        // 2. BUSCAR INSIGNIAS DESDE LA TABLA CORRECTA 'feriantes_skills' Y LA TABLA 'skills'
+        // 2. BUSCAR INSIGNIAS DESDE LA TABLA 'feriantes_skills' Y LA TABLA 'skills' (Forzando Number para los IDs)
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
@@ -242,10 +242,11 @@
           .eq('feriante_id', ferianteId);
 
         if (relSkills && relSkills.length > 0) {
-          const idsHabilidades = relSkills.map(r => r.skill_id);
+          const idsHabilidades = relSkills.map(r => Number(r.skill_id));
+          
           const { data: listaHabs } = await _supabase
             .from('skills')
-            .select('nombre')
+            .select('id, nombre')
             .in('id', idsHabilidades);
 
           if (listaHabs && listaHabs.length > 0) {
