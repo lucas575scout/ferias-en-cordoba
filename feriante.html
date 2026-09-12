@@ -232,31 +232,44 @@
           btnWsp.classList.add('hidden');
         }
 
-        // 2. BUSCAR INSIGNIAS DESDE LA TABLA 'feriantes_skills' Y LA TABLA 'skills'
+        // 2. BUSCAR INSIGNIAS (MODO DIAGNÓSTICO)
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
         const { data: relSkills, error: errRel } = await _supabase
           .from('feriantes_skills')
-          .select('skill_id')
-          .eq('feriante_id', ferianteId);
+          .select('*');
 
-        if (!errRel && relSkills && relSkills.length > 0) {
-          const idsHabilidades = relSkills.map(r => Number(r.skill_id));
-          
-          const { data: listaHabs } = await _supabase
-            .from('skills')
-            .select('id, nombre')
-            .in('id', idsHabilidades);
+        console.log("Contenido de feriantes_skills:", relSkills);
+        console.log("Error si lo hay:", errRel);
 
-          if (listaHabs && listaHabs.length > 0) {
-            listaHabs.forEach(h => {
-              const span = document.createElement('span');
-              span.className = 'inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-sm';
-              span.innerHTML = `<i class="fa-solid fa-award text-emerald-600 text-[10px]"></i> ${sanitizar(h.nombre)}`;
-              containerInsignias.appendChild(span);
-            });
-            return;
+        if (relSkills && relSkills.length > 0) {
+          const misRelaciones = relSkills.filter(r => Object.values(r).includes(ferianteId));
+          console.log("Relaciones para este feriante:", misRelaciones);
+
+          if (misRelaciones.length > 0) {
+            const idsHabilidades = misRelaciones.map(r => {
+              return Object.values(r).find(v => v !== ferianteId && (typeof v === 'number' || !isNaN(v)));
+            }).filter(Boolean).map(Number);
+
+            console.log("IDs de skills encontrados:", idsHabilidades);
+
+            if (idsHabilidades.length > 0) {
+              const { data: listaHabs } = await _supabase
+                .from('skills')
+                .select('id, nombre')
+                .in('id', idsHabilidades);
+
+              if (listaHabs && listaHabs.length > 0) {
+                listaHabs.forEach(h => {
+                  const span = document.createElement('span');
+                  span.className = 'inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-sm';
+                  span.innerHTML = `<i class="fa-solid fa-award text-emerald-600 text-[10px]"></i> ${sanitizar(h.nombre)}`;
+                  containerInsignias.appendChild(span);
+                });
+                return;
+              }
+            }
           }
         }
 
