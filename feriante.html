@@ -52,7 +52,7 @@
 
   <!-- PORTADA / PERFIL DE FERIANTE -->
   <section class="bg-white border-b relative">
-    <div class="h-40 md:h-56 bg-gradient-to-r from-emerald-800 to-brand-green overflow-hidden relative">
+    <div id="contenedor-portada" class="h-40 md:h-56 bg-gradient-to-r from-emerald-800 to-brand-green overflow-hidden relative">
       <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
     </div>
 
@@ -181,9 +181,16 @@
 
     async function cargarDatosFeriante() {
       try {
+        // Consulta cruzada con feria y habilidades por tabla intermedia
         const { data: f, error } = await _supabase
           .from('feriantes')
-          .select('*, ferias(nombre)')
+          .select(`
+            *,
+            ferias(nombre),
+            feriante_skills(
+              habilidades(nombre)
+            )
+          `)
           .eq('id', ferianteId)
           .single();
 
@@ -198,6 +205,12 @@
 
         if (f.logo_url || f.perfil_url) {
           document.getElementById('feriante-logo').src = f.logo_url || f.perfil_url;
+        }
+
+        // RENDERIZAR PORTADA DESDE LA BASE DE DATOS
+        const contenedorPortada = document.getElementById('contenedor-portada');
+        if (f.portada_url) {
+          contenedorPortada.innerHTML = `<img src="${f.portada_url}" class="w-full h-full object-cover" alt="Portada de ${sanitizar(nombre)}">`;
         }
 
         // Instagram
@@ -224,24 +237,16 @@
           btnWsp.classList.add('hidden');
         }
 
-        // PROCESAMIENTO DINÁMICO DE SKILLS / INSIGNIAS
+        // PROCESAMIENTO DINÁMICO DE SKILLS / INSIGNIAS DESDE LA TABLA INTERMEDIA
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
-        let rawSkills = f.skills || f.tags || f.insignias || [];
         let listaSkills = [];
-
-        if (typeof rawSkills === 'string') {
-          try {
-            listaSkills = JSON.parse(rawSkills);
-          } catch (e) {
-            listaSkills = rawSkills.split(',').map(s => s.trim());
-          }
-        } else if (Array.isArray(rawSkills)) {
-          listaSkills = rawSkills;
+        if (f.feriante_skills && Array.isArray(f.feriante_skills)) {
+          listaSkills = f.feriante_skills
+            .map(item => item.habilidades?.nombre)
+            .filter(Boolean);
         }
-
-        listaSkills = listaSkills.filter(item => Boolean(item));
 
         if (listaSkills.length > 0) {
           listaSkills.forEach(skill => {
