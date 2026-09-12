@@ -236,12 +236,12 @@
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
-        const { data: relSkills } = await _supabase
+        const { data: relSkills, error: errRel } = await _supabase
           .from('feriantes_skills')
           .select('skill_id')
           .eq('feriante_id', ferianteId);
 
-        if (relSkills && relSkills.length > 0) {
+        if (!errRel && relSkills && relSkills.length > 0) {
           const idsHabilidades = relSkills.map(r => Number(r.skill_id));
           
           const { data: listaHabs } = await _supabase
