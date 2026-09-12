@@ -181,7 +181,7 @@
 
     async function cargarDatosFeriante() {
       try {
-        // 1. Traemos SOLO los datos principales del feriante y su feria de forma limpia
+        // 1. Traemos los datos principales del feriante y su feria
         const { data: f, error } = await _supabase
           .from('feriantes')
           .select('*, ferias(nombre)')
@@ -232,7 +232,7 @@
           btnWsp.classList.add('hidden');
         }
 
-        // 2. BUSCAR HABILIDADES DESDE LA TABLA 'skills'
+        // 2. BUSCAR INSIGNIAS DESDE LA TABLA PUENTE 'feriante_skills' Y LA TABLA 'skills'
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
