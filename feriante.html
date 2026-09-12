@@ -232,7 +232,7 @@
           btnWsp.classList.add('hidden');
         }
 
-        // 2. BUSCAR HABILIDADES DE FORMA INDEPENDIENTE (A prueba de fallos)
+        // 2. BUSCAR HABILIDADES DESDE LA TABLA 'skills'
         const containerInsignias = document.getElementById('container-insignias');
         containerInsignias.innerHTML = '';
 
@@ -244,7 +244,7 @@
         if (relSkills && relSkills.length > 0) {
           const idsHabilidades = relSkills.map(r => r.skill_id);
           const { data: listaHabs } = await _supabase
-            .from('habilidades')
+            .from('skills')
             .select('nombre')
             .in('id', idsHabilidades);
 
